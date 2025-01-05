@@ -1,0 +1,112 @@
+package handler
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"net/http"
+	"strconv"
+
+	"github.com/egasa21/si-lab-api-go/internal/errs"
+	"github.com/egasa21/si-lab-api-go/internal/model"
+	"github.com/egasa21/si-lab-api-go/internal/pkg/response"
+	"github.com/egasa21/si-lab-api-go/internal/service"
+)
+
+type StudentHandler struct {
+	service service.StudentService
+}
+
+func NewStudentHandler(service service.StudentService) *StudentHandler {
+	return &StudentHandler{service: service}
+}
+
+func (h *StudentHandler) GetAllStudents(w http.ResponseWriter, r *http.Request) {
+	// Get page and limit query parameters
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1 // Default page number
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 10 // Default limit
+	}
+
+	students, total, err := h.service.GetAllStudents(page, limit)
+	if err != nil {
+		// Return error response with status 500
+		appErr := errs.NewAppError("Unable to fetch students", http.StatusInternalServerError)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	// Calculate total pages for pagination
+	totalPages := (total + limit - 1) / limit // Ceiling division
+
+	pagination := response.Pagination{
+		Page:       page,
+		PerPage:    limit,
+		TotalPages: totalPages,
+		TotalItems: total,
+	}
+
+	response.NewPaginatedSuccessResponse(w, students, pagination, "Students retrieved successfully")
+}
+
+func (h *StudentHandler) GetStudentById(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+
+		appErr := errs.NewAppError("Invalid ID", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	student, err := h.service.GetStudentByID(id)
+	if err != nil {
+
+		appErr := errs.NewAppError("Student not found", http.StatusNotFound)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	response.NewSuccessResponse(w, student, "Student retrieved successfully")
+}
+
+func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
+
+	var student model.Student
+	err := json.NewDecoder(r.Body).Decode(&student)
+	if err != nil {
+
+		appErr := errs.NewAppError("Invalid request payload", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	// check existing student
+	existingStudent, err := h.service.GetStudentByStudentID(student.StudentIDNumber)
+	if err == nil && existingStudent != nil {
+
+		appErr := errs.NewAppError("Student with this ID number is already registered", http.StatusConflict)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	_, err = h.service.CreateStudent(&student)
+	if err != nil {
+
+		fmt.Print(err)
+		appErr := errs.NewAppError("Failed to create student", http.StatusInternalServerError)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	// Respond with a success message (no need to return student ID)
+	response.NewSuccessResponse(w, nil, "Student created successfully")
+}
