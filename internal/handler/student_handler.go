@@ -58,15 +58,12 @@ func (h *StudentHandler) GetAllStudents(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *StudentHandler) GetStudentById(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
-	id, err := strconv.Atoi(idStr)
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-
 		appErr := errs.NewAppError("Invalid ID", http.StatusBadRequest)
 		response.NewErrorResponse(w, appErr)
 		return
 	}
-
 	student, err := h.service.GetStudentByID(id)
 	if err != nil {
 
@@ -107,6 +104,5 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond with a success message (no need to return student ID)
 	response.NewSuccessResponse(w, nil, "Student created successfully")
 }

@@ -35,20 +35,8 @@ func NewServer(cfg *configs.Config) *Server {
 	// Setup v1 sub-mux
 	v1 := http.NewServeMux()
 
-	// Combined handler for /students to distinguish between GET and POST
-	v1.HandleFunc("/students", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			studentHandler.GetAllStudents(w, r)
-		case http.MethodPost:
-			studentHandler.CreateStudent(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	// Specific handler for getting a student by ID
-	v1.HandleFunc("/students/", studentHandler.GetStudentById)
+	v1.HandleFunc("GET /students", studentHandler.GetAllStudents)
+	v1.HandleFunc("GET /students/{id}", studentHandler.GetStudentById)
 
 	// Register the v1 routes
 	mux.Handle("/v1/", http.StripPrefix("/v1", v1))

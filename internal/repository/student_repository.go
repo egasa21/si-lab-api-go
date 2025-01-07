@@ -56,7 +56,7 @@ func (r *studentRepository) GetAllStudents(page, limit int) ([]model.Student, in
 
 func (r *studentRepository) GetStudentByID(id int) (*model.Student, error) {
 	var student model.Student
-	err := r.db.QueryRow("SELECT id, student_id_number, name, study_plan_file, created_at, updated_at FROM Student WHERE id = $1", id).
+	err := r.db.QueryRow("SELECT id, student_id_number, name, study_plan_file, created_at, updated_at FROM students WHERE id = $1", id).
 		Scan(&student.ID, &student.StudentIDNumber, &student.Name, &student.StudyPlanFile, &student.CreatedAt, &student.UpdatedAt)
 	if err != nil {
 		return nil, err
