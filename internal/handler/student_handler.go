@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/egasa21/si-lab-api-go/internal/errs"
 	"github.com/egasa21/si-lab-api-go/internal/model"
+	"github.com/egasa21/si-lab-api-go/internal/pkg"
+
 	"github.com/egasa21/si-lab-api-go/internal/pkg/response"
 	"github.com/egasa21/si-lab-api-go/internal/service"
 )
@@ -39,7 +40,7 @@ func (h *StudentHandler) GetAllStudents(w http.ResponseWriter, r *http.Request) 
 	students, total, err := h.service.GetAllStudents(page, limit)
 	if err != nil {
 		// Return error response with status 500
-		appErr := errs.NewAppError("Unable to fetch students", http.StatusInternalServerError)
+		appErr := pkg.NewAppError("Unable to fetch students", http.StatusInternalServerError)
 		response.NewErrorResponse(w, appErr)
 		return
 	}
@@ -60,14 +61,14 @@ func (h *StudentHandler) GetAllStudents(w http.ResponseWriter, r *http.Request) 
 func (h *StudentHandler) GetStudentById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
-		appErr := errs.NewAppError("Invalid ID", http.StatusBadRequest)
+		appErr := pkg.NewAppError("Invalid ID", http.StatusBadRequest)
 		response.NewErrorResponse(w, appErr)
 		return
 	}
 	student, err := h.service.GetStudentByID(id)
 	if err != nil {
 
-		appErr := errs.NewAppError("Student not found", http.StatusNotFound)
+		appErr := pkg.NewAppError("Student not found", http.StatusNotFound)
 		response.NewErrorResponse(w, appErr)
 		return
 	}
@@ -81,7 +82,7 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&student)
 	if err != nil {
 
-		appErr := errs.NewAppError("Invalid request payload", http.StatusBadRequest)
+		appErr := pkg.NewAppError("Invalid request payload", http.StatusBadRequest)
 		response.NewErrorResponse(w, appErr)
 		return
 	}
@@ -90,7 +91,7 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 	existingStudent, err := h.service.GetStudentByStudentID(student.StudentIDNumber)
 	if err == nil && existingStudent != nil {
 
-		appErr := errs.NewAppError("Student with this ID number is already registered", http.StatusConflict)
+		appErr := pkg.NewAppError("Student with this ID number is already registered", http.StatusConflict)
 		response.NewErrorResponse(w, appErr)
 		return
 	}
@@ -99,7 +100,7 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 
 		fmt.Print(err)
-		appErr := errs.NewAppError("Failed to create student", http.StatusInternalServerError)
+		appErr := pkg.NewAppError("Failed to create student", http.StatusInternalServerError)
 		response.NewErrorResponse(w, appErr)
 		return
 	}

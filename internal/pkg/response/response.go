@@ -3,7 +3,8 @@ package response
 import (
 	"encoding/json"
 	"net/http"
-	"github.com/egasa21/si-lab-api-go/internal/errs"
+
+	"github.com/egasa21/si-lab-api-go/internal/pkg"
 )
 
 // Meta structure that contains meta information.
@@ -22,10 +23,10 @@ type Response struct {
 
 // Pagination structure for paginated responses.
 type Pagination struct {
-	Page        int `json:"page"`
-	PerPage     int `json:"per_page"`
-	TotalPages  int `json:"total_pages"`
-	TotalItems  int `json:"total_items"`
+	Page       int `json:"page"`
+	PerPage    int `json:"per_page"`
+	TotalPages int `json:"total_pages"`
+	TotalItems int `json:"total_items"`
 }
 
 // NewSuccessResponse formats a success response with data.
@@ -60,7 +61,7 @@ func NewPaginatedSuccessResponse(w http.ResponseWriter, data interface{}, pagina
 }
 
 // NewErrorResponse formats an error response based on AppError.
-func NewErrorResponse(w http.ResponseWriter, err *errs.AppError) {
+func NewErrorResponse(w http.ResponseWriter, err *pkg.AppError) {
 	response := Response{
 		Meta: Meta{
 			Success:   false,

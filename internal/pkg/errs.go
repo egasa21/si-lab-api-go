@@ -1,4 +1,4 @@
-package errs
+package pkg
 
 import "net/http"
 
