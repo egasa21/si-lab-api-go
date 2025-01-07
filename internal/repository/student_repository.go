@@ -78,11 +78,25 @@ func (r *studentRepository) GetStudentByStudentID(student_id_number string) (*mo
 }
 
 func (r *studentRepository) CreateStudent(student *model.Student) (int, error) {
-	var id int
-	err := r.db.QueryRow("INSERT INTO students (student_id_number, name, study_plan_file, created_at) VALUES ($1, $2, $3, $4) RETURNING id",
-		student.StudentIDNumber, student.Name, student.StudyPlanFile, student.CreatedAt).Scan(&id)
+	// start transaction
+	tx, err := r.db.Begin()
 	if err != nil {
 		return 0, err
 	}
+
+	var id int
+	err = tx.QueryRow("INSERT INTO students (student_id_number, name, study_plan_file, created_at) VALUES ($1, $2, $3, $4) RETURNING id",
+		student.StudentIDNumber, student.Name, student.StudyPlanFile, student.CreatedAt).Scan(&id)
+	if err != nil {
+		// rollback if error
+		tx.Rollback()
+		return 0, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return 0, err
+	}
+	
 	return id, nil
 }

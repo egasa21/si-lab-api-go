@@ -37,6 +37,7 @@ func NewServer(cfg *configs.Config) *Server {
 
 	v1.HandleFunc("GET /students", studentHandler.GetAllStudents)
 	v1.HandleFunc("GET /students/{id}", studentHandler.GetStudentById)
+	v1.HandleFunc("POST /students", studentHandler.CreateStudent)
 
 	// Register the v1 routes
 	mux.Handle("/v1/", http.StripPrefix("/v1", v1))
