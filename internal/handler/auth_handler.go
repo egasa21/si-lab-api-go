@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/egasa21/si-lab-api-go/internal/dto"
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/egasa21/si-lab-api-go/internal/pkg"
 	"github.com/egasa21/si-lab-api-go/internal/pkg/response"
@@ -19,29 +21,35 @@ func NewAuthHandler(authService service.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
-	var user model.User
+	var req dto.RegisterRequest
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	// Decode the JSON payload into the request struct
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-
 		appErr := pkg.NewAppError("Invalid request payload", http.StatusBadRequest)
 		response.NewErrorResponse(w, appErr)
 		return
 	}
 
-	roleNames := make([]string, len(user.Roles))
-	for i, role := range user.Roles {
-		roleNames[i] = string(role.Name)
+	// Log or check if the password exists
+	fmt.Printf("Password received in request: %s\n", req.Password)
+
+	// Populate the User model using the request data
+	user := model.User{
+		Email:     req.Email,
+		Password:  req.Password, // Pass the raw password to be hashed later
+		IDStudent: req.IDStudent,
 	}
 
+	// Call the service with the User model and default roles
 	if err := h.authService.Register(&user, nil); err != nil {
 		appErr := pkg.NewAppError(err.Error(), http.StatusBadRequest)
 		response.NewErrorResponse(w, appErr)
-
 		return
 	}
 
-	response.NewSuccessResponse(w, nil, "User registered successfully ")
+	// Respond with success
+	response.NewSuccessResponse(w, nil, "User registered successfully")
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +71,10 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.NewSuccessResponse(w, token, "User registered successfully ")
+	data := map[string]string{
+		"access_token": token,
+	}
+
+	response.NewSuccessResponse(w, data, "User registered successfully ")
 
 }

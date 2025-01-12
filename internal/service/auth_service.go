@@ -30,8 +30,12 @@ func (s *authService) Register(user *model.User, roles []string) error {
 		return errors.New("email already registered")
 	}
 
+	if user.Password == "" {
+		return errors.New("password cannot be empty")
+	}
+
 	// Hash password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	if err != nil {
 		return err
 	}
@@ -71,12 +75,11 @@ func (s *authService) Login(email, password string) (string, error) {
 		return "", errors.New("invalid email or password")
 	}
 
-	fmt.Println(user)
-
 	// Verify password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		fmt.Println("Stored Password:", user.Password)
 		fmt.Println("Input Password:", password)
+		fmt.Printf("Password comparison failed: %v", err)
 		return "", errors.New("invalid email or password")
 	}
 
