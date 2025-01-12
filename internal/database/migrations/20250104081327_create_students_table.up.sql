@@ -1,4 +1,4 @@
-CREATE TABLE students (
+CREATE TABLE IF NOT EXISTS students (
     id SERIAL PRIMARY KEY,
     student_id_number VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,

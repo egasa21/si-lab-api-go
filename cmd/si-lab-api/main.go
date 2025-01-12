@@ -2,9 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/egasa21/si-lab-api-go/configs"
 	"github.com/egasa21/si-lab-api-go/internal/server"
-	"log"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/lib/pq"
 )
 
 func main() {
