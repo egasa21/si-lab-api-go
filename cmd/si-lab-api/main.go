@@ -1,27 +1,56 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"os"
+	"strings"
 
 	"github.com/egasa21/si-lab-api-go/configs"
 	"github.com/egasa21/si-lab-api-go/internal/server"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/lib/pq"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 func main() {
 	// Load environment variables
 	cfg := configs.LoadConfig()
 
-	// Initialize the server
-	srv := server.NewServer(cfg)
+	// Set up zerolog
+	logLevel := strings.ToLower(cfg.LogLevel)
+	zerolog.SetGlobalLevel(parseLogLevel(logLevel))
+
+	// Configure logger to write to stdout
+	logger := zerolog.New(os.Stdout).With().
+		Timestamp().
+		Str("service", "si-lab-api-go").
+		Logger()
+
+	// Initialize the server with logger
+	srv := server.NewServer(cfg, logger)
 
 	// Start the server
 	if err := srv.Start(); err != nil {
-		log.Fatalf("Error starting server: %v", err)
-		//os.Exit(1)
+		log.Fatal().Err(err).Msg("Error starting server")
 	}
+}
 
-	fmt.Println("Server started successfully")
+// Helper function to parse log level
+func parseLogLevel(level string) zerolog.Level {
+	switch level {
+	case "panic":
+		return zerolog.PanicLevel
+	case "fatal":
+		return zerolog.FatalLevel
+	case "error":
+		return zerolog.ErrorLevel
+	case "warn":
+		return zerolog.WarnLevel
+	case "info":
+		return zerolog.InfoLevel
+	case "debug":
+		return zerolog.DebugLevel
+	case "trace":
+		return zerolog.TraceLevel
+	default:
+		return zerolog.InfoLevel
+	}
 }

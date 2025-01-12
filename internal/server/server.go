@@ -2,26 +2,30 @@ package server
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"time"
 
 	"github.com/egasa21/si-lab-api-go/configs"
 	"github.com/egasa21/si-lab-api-go/internal/database"
 	"github.com/egasa21/si-lab-api-go/internal/handler"
 	"github.com/egasa21/si-lab-api-go/internal/repository"
 	"github.com/egasa21/si-lab-api-go/internal/service"
-	_ "github.com/lib/pq"
+	"github.com/rs/zerolog"
 )
+
+type middleware func(http.Handler) http.Handler
 
 type Server struct {
 	server *http.Server
+	logger zerolog.Logger
+	mux    *http.ServeMux
 }
 
-func NewServer(cfg *configs.Config) *Server {
+func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	// Initialize DB connection
 	db, err := database.ConnectDB(cfg)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		logger.Fatal().Err(err).Msg("Failed to connect to database")
 	}
 
 	// Initialize repositories
@@ -35,37 +39,70 @@ func NewServer(cfg *configs.Config) *Server {
 	// Initialize handlers
 	studentHandler := handler.NewStudentHandler(studentService)
 	authHandler := handler.NewAuthHandler(authService)
+
+	// Initialize main router
 	mux := http.NewServeMux()
 
-	// Setup v1 sub-mux
-	v1 := http.NewServeMux()
-
-	v1.HandleFunc("GET /students", studentHandler.GetAllStudents)
-	v1.HandleFunc("GET /students/{id}", studentHandler.GetStudentById)
-	v1.HandleFunc("POST /students", studentHandler.CreateStudent)
+	mux.HandleFunc("GET /students", studentHandler.GetAllStudents)
+	mux.HandleFunc("GET /students/{id}", studentHandler.GetStudentById)
+	mux.HandleFunc("POST /students", studentHandler.CreateStudent)
 
 	// auth
-	v1.HandleFunc("POST /auth/register", authHandler.Register)
-	v1.HandleFunc("POST /auth/login", authHandler.Login)
+	mux.HandleFunc("POST /auth/register", authHandler.Register)
+	mux.HandleFunc("POST /auth/login", authHandler.Login)
 
-	// Register the v1 routes
-	mux.Handle("/v1/", http.StripPrefix("/v1", v1))
+	// Wrap the router with middleware
+	handlerWithMiddleware := wrapMiddleware(mux, Logger(logger))
 
-	// Setup the HTTP server
+	// Setup HTTP server
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%s", cfg.AppPort),
-		Handler: mux,
+		Handler: handlerWithMiddleware,
 	}
 
-	return &Server{server: server}
+	return &Server{
+		server: server,
+		logger: logger,
+		mux:    mux,
+	}
 }
 
 // Start the HTTP server
 func (s *Server) Start() error {
-	fmt.Println("Starting server on port:", s.server.Addr)
+	s.logger.Info().Msgf("Starting server on port: %s", s.server.Addr)
 	if err := s.server.ListenAndServe(); err != nil {
-		log.Fatalf("Failed to start the server: %v", err)
+		s.logger.Fatal().Err(err).Msg("Failed to start the server")
 		return err
 	}
 	return nil
+}
+
+// Logger middleware logs all HTTP requests
+func Logger(logger zerolog.Logger) middleware {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			startTime := time.Now()
+
+			// Serve the request
+			next.ServeHTTP(w, r)
+
+			// Log the request details
+			duration := time.Since(startTime)
+			logger.Info().
+				Str("method", r.Method).
+				Str("path", r.URL.Path).
+				Str("remote_ip", r.RemoteAddr).
+				Dur("duration", duration).
+				Msg("Request completed")
+		})
+	}
+}
+
+// Middleware chaining function
+func wrapMiddleware(handler http.Handler, middlewares ...middleware) http.Handler {
+	// Apply middlewares in reverse order
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		handler = middlewares[i](handler)
+	}
+	return handler
 }
