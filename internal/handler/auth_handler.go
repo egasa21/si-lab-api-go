@@ -72,7 +72,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]string{
-		"access_token": token,
+		"access_token":  token.AccessToken,
+		"refresh_token": token.RefreshToken,
 	}
 
 	response.NewSuccessResponse(w, data, "User registered successfully ")

@@ -42,17 +42,21 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 
 	// Initialize main router
 	mux := http.NewServeMux()
+	v1Router := http.NewServeMux()
 
-	mux.HandleFunc("GET /students", studentHandler.GetAllStudents)
-	mux.HandleFunc("GET /students/{id}", studentHandler.GetStudentById)
-	mux.HandleFunc("POST /students", studentHandler.CreateStudent)
+	v1Router.HandleFunc("GET /students", studentHandler.GetAllStudents)
+	v1Router.HandleFunc("GET /students/{id}", studentHandler.GetStudentById)
+	v1Router.HandleFunc("POST /students", studentHandler.CreateStudent)
 
 	// auth
-	mux.HandleFunc("POST /auth/register", authHandler.Register)
-	mux.HandleFunc("POST /auth/login", authHandler.Login)
+	v1Router.HandleFunc("POST /auth/register", authHandler.Register)
+	v1Router.HandleFunc("POST /auth/login", authHandler.Login)
+
+	// v1
+	mux.Handle("/v1/", http.StripPrefix("/v1", v1Router))
 
 	// Wrap the router with middleware
-	handlerWithMiddleware := wrapMiddleware(mux, Logger(logger))
+	handlerWithMiddleware := wrapMiddleware(v1Router, Logger(logger))
 
 	// Setup HTTP server
 	server := &http.Server{
@@ -63,7 +67,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	return &Server{
 		server: server,
 		logger: logger,
-		mux:    mux,
+		mux:    v1Router,
 	}
 }
 

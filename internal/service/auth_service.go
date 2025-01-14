@@ -12,7 +12,7 @@ import (
 
 type AuthService interface {
 	Register(user *model.User, roles []string) error
-	Login(email, password string) (string, error)
+	Login(email, password string) (*auth.TokenDetails, error)
 }
 
 type authService struct {
@@ -68,29 +68,30 @@ func (s *authService) Register(user *model.User, roles []string) error {
 	return nil
 }
 
-func (s *authService) Login(email, password string) (string, error) {
+func (s *authService) Login(email, password string) (*auth.TokenDetails, error) {
 	// Get user by email
 	user, err := s.repo.GetUserByEmail(email)
 	if err != nil {
-		return "", errors.New("invalid email or password")
+		return nil, errors.New("invalid email or password")
 	}
 
 	// Verify password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		fmt.Println("Stored Password:", user.Password)
 		fmt.Println("Input Password:", password)
-		fmt.Printf("Password comparison failed: %v", err)
-		return "", errors.New("invalid email or password")
+		fmt.Printf("Password comparison failed: %v\n", err)
+		return nil, errors.New("invalid email or password")
 	}
 
-	// Generate JWT
-	token, err := auth.GenerateJWT(user.IDUser, user.Roles)
+	// Generate JWT (access and refresh tokens)
+	tokens, err := auth.GenerateJWT(user.IDUser, user.Roles)
 	if err != nil {
-		return "", nil
+		return nil, fmt.Errorf("failed to generate tokens: %w", err)
 	}
 
-	return token, nil
+	return tokens, nil
 }
+
 
 func (s *authService) getRoleIDByName(name string) (int, error) {
 	roleMapping := map[string]int{
