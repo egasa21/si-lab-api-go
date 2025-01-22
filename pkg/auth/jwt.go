@@ -1,18 +1,23 @@
 package auth
 
 import (
+	"errors"
+	"os"
 	"time"
 
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var jwtSecret = []byte("super_secfet_ket")
+var jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
 
 type TokenDetails struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
+
+var ErrInvalidToken = errors.New("invalid token")
+var ErrTokenExpired = errors.New("token has expired")
 
 // GenerateJWT generates an access token and a refresh token for the user
 func GenerateJWT(userID int, roles []model.RoleModel) (*TokenDetails, error) {
@@ -54,4 +59,26 @@ func GenerateJWT(userID int, roles []model.RoleModel) (*TokenDetails, error) {
 		AccessToken:  accessTokenString,
 		RefreshToken: refreshTokenString,
 	}, nil
+}
+
+func VerifyToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, ErrInvalidToken
+		}
+		return jwtSecret, nil
+	})
+
+	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, ErrTokenExpired
+		}
+		return nil, ErrInvalidToken
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, ErrInvalidToken
 }
