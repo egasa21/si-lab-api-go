@@ -57,7 +57,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	mux.Handle("/v1/", http.StripPrefix("/v1", v1Router))
 
 	// Wrap the router with middleware
-	handlerWithMiddleware := wrapMiddleware(v1Router, Logger(logger))
+	handlerWithMiddleware := wrapMiddleware(mux, Logger(logger))
 
 	// Setup HTTP server
 	server := &http.Server{
@@ -68,7 +68,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	return &Server{
 		server: server,
 		logger: logger,
-		mux:    v1Router,
+		mux:    mux,
 	}
 }
 
