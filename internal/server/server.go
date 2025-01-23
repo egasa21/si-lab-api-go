@@ -8,6 +8,7 @@ import (
 	"github.com/egasa21/si-lab-api-go/configs"
 	"github.com/egasa21/si-lab-api-go/internal/database"
 	"github.com/egasa21/si-lab-api-go/internal/handler"
+	"github.com/egasa21/si-lab-api-go/internal/middlewares"
 	"github.com/egasa21/si-lab-api-go/internal/repository"
 	"github.com/egasa21/si-lab-api-go/internal/service"
 	"github.com/rs/zerolog"
@@ -44,8 +45,8 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	mux := http.NewServeMux()
 	v1Router := http.NewServeMux()
 
-	v1Router.HandleFunc("GET /students", studentHandler.GetAllStudents)
-	v1Router.HandleFunc("GET /students/{id}", studentHandler.GetStudentById)
+	v1Router.Handle("GET /students", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetAllStudents)))
+	v1Router.Handle("GET /students/{id}", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetStudentById)))
 	v1Router.HandleFunc("POST /students", studentHandler.CreateStudent)
 
 	// auth
