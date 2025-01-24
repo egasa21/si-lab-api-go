@@ -32,22 +32,29 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	// Initialize repositories
 	studentRepository := repository.NewStudentRepository(db)
 	authRepository := repository.NewAuthRepository(db)
+	practicumRepository := repository.NewPracticumRepository(db)
 
 	// Initialize services
 	studentService := service.NewStudentService(studentRepository)
 	authService := service.NewAuthService(authRepository)
+	practicumService := service.NewPracticumService(practicumRepository)
 
 	// Initialize handlers
 	studentHandler := handler.NewStudentHandler(studentService)
 	authHandler := handler.NewAuthHandler(authService)
+	practicumHandler := handler.NewPracticumHandler(practicumService)
 
 	// Initialize main router
 	mux := http.NewServeMux()
 	v1Router := http.NewServeMux()
 
+	// student
 	v1Router.Handle("GET /students", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetAllStudents)))
 	v1Router.Handle("GET /students/{id}", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetStudentById)))
 	v1Router.HandleFunc("POST /students", studentHandler.CreateStudent)
+
+	// practicum
+	v1Router.HandleFunc("POST /practicums", practicumHandler.CreatePracticum)
 
 	// auth
 	v1Router.HandleFunc("POST /auth/register", authHandler.Register)
