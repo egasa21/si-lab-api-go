@@ -33,9 +33,9 @@ func ConnectDB(cfg *configs.Config) (*sql.DB, error) {
 		return nil, fmt.Errorf("database connection test failed: %w", err)
 	}
 
-	if err := RunMigrations(ctx, cfg); err != nil {
-		return nil, fmt.Errorf("failed to run migrations: %w", err)
-	}
+	// if err := RunMigrations(ctx, cfg); err != nil {
+	// 	return nil, fmt.Errorf("failed to run migrations: %w", err)
+	// }
 
 	fmt.Println("Database connection established")
 	return db, nil

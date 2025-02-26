@@ -8,6 +8,7 @@ import (
 
 type PracticumRepository interface {
 	CreatePracticum(practicum *model.Practicum) error
+	GetPracticumByID(id int) (*model.Practicum, error)
 }
 
 type practicumRepository struct {
@@ -47,4 +48,14 @@ func (r *practicumRepository) CreatePracticum(practicum *model.Practicum) error 
 	}
 
 	return nil
+}
+
+func (r *practicumRepository) GetPracticumByID(id int) (*model.Practicum, error) {
+	var practicum model.Practicum
+	err := r.db.QueryRow("SELECT id_practicum, name, code, description, credits, semester, created_at, updated_at FROM practicums WHERE id_practicum = $1", id).
+		Scan(&practicum.ID, &practicum.Name, &practicum.Code, &practicum.Description, &practicum.Credits, &practicum.Semester, &practicum.CreatedAt, &practicum.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &practicum, nil
 }

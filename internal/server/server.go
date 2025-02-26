@@ -55,6 +55,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 
 	// practicum
 	v1Router.HandleFunc("POST /practicums", practicumHandler.CreatePracticum)
+	v1Router.HandleFunc("GET /practicums/{id}", practicumHandler.GetPracticumByID)
 
 	// auth
 	v1Router.HandleFunc("POST /auth/register", authHandler.Register)

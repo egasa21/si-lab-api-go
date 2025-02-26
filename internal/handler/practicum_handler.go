@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+
 	"net/http"
+	"strconv"
 
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/egasa21/si-lab-api-go/internal/pkg"
@@ -37,4 +39,22 @@ func (h *PracticumHandler) CreatePracticum(w http.ResponseWriter, r *http.Reques
 	}
 
 	response.NewSuccessResponse(w, nil, "Practicum created successfully")
+}
+
+func (h *PracticumHandler) GetPracticumByID(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		appErr := pkg.NewAppError("Invalid ID", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	practicum, err := h.service.GetPracticumByID(id)
+	if err != nil {
+		appErr := pkg.NewAppError("Practicum not found", http.StatusNotFound)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	response.NewSuccessResponse(w, practicum, "practicum retrieved successfully")
 }

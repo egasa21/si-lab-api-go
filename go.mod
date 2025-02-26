@@ -1,6 +1,6 @@
 module github.com/egasa21/si-lab-api-go
 
-go 1.22.0
+go 1.23.4
 
 toolchain go1.22.10
 
