@@ -18,8 +18,8 @@ Make sure you have the following installed:
 ### Installation
 1. Clone the repository:
    ```sh
-   git clone (https://github.com/egasa21/si-lab-api-go.git)>
-   cd <si-lab-api-go>
+   git clone https://github.com/egasa21/si-lab-api-go.git
+   cd si-lab-api-go
    ```
 2. Set up environment variables:
    ```sh
@@ -39,8 +39,8 @@ Make sure you have the following installed:
 
 ## API Documentation
 You can access the API documentation and test endpoints using Postman:
-[Postman Documentation]
-[(https://documenter.getpostman.com/view/10017926/2sAYdfpWHA)]
+
+[Postman Documentation](https://documenter.getpostman.com/view/10017926/2sAYdfpWHA)
 
 ## Contributing
 Feel free to fork the repository and submit pull requests.
