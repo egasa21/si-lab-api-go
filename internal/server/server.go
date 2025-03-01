@@ -33,16 +33,19 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	studentRepository := repository.NewStudentRepository(db)
 	authRepository := repository.NewAuthRepository(db)
 	practicumRepository := repository.NewPracticumRepository(db)
+	practicumModuleRepository := repository.NewPracticumModuleRepository(db)
 
 	// Initialize services
 	studentService := service.NewStudentService(studentRepository)
 	authService := service.NewAuthService(authRepository)
 	practicumService := service.NewPracticumService(practicumRepository)
+	practicumModuleService := service.NewPracticumModuleService(practicumModuleRepository)
 
 	// Initialize handlers
 	studentHandler := handler.NewStudentHandler(studentService)
 	authHandler := handler.NewAuthHandler(authService)
 	practicumHandler := handler.NewPracticumHandler(practicumService)
+	practicumModuleHandler := handler.NewPracticumModuleHandler(practicumModuleService)
 
 	// Initialize main router
 	mux := http.NewServeMux()
@@ -57,6 +60,11 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	v1Router.HandleFunc("GET /practicums", practicumHandler.GetAllPracticums)
 	v1Router.HandleFunc("POST /practicums", practicumHandler.CreatePracticum)
 	v1Router.HandleFunc("GET /practicums/{id}", practicumHandler.GetPracticumByID)
+
+	// practicum module
+	v1Router.HandleFunc("GET /practicums/{practicum_id}/modules", practicumModuleHandler.GetModulesByPracticumID)
+	v1Router.HandleFunc("POST /practicum-modules", practicumModuleHandler.CreateModule)
+	v1Router.HandleFunc("GET /practicum-modules/{id}", practicumModuleHandler.GetModuleByID)
 
 	// auth
 	v1Router.HandleFunc("POST /auth/register", authHandler.Register)
