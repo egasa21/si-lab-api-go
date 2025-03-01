@@ -10,6 +10,7 @@ import (
 	"github.com/egasa21/si-lab-api-go/internal/pkg"
 	"github.com/egasa21/si-lab-api-go/internal/pkg/response"
 	"github.com/egasa21/si-lab-api-go/internal/service"
+	"github.com/rs/zerolog/log"
 )
 
 type PracticumHandler struct {
@@ -57,4 +58,39 @@ func (h *PracticumHandler) GetPracticumByID(w http.ResponseWriter, r *http.Reque
 	}
 
 	response.NewSuccessResponse(w, practicum, "practicum retrieved successfully")
+}
+
+func (h *PracticumHandler) GetAllPracticums(w http.ResponseWriter, r *http.Request) {
+	pageStr := r.URL.Query().Get("page")
+	limitStr := r.URL.Query().Get("limit")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 10
+	}
+
+	practicums, total, err := h.service.GetAllPracticums(page, limit)
+	if err != nil {
+
+		appErr := pkg.NewAppError("Unable to fetch practicums", http.StatusInternalServerError)
+		log.Error().Err(err)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	totalPages := (total + limit - 1) / limit
+
+	pagination := response.Pagination{
+		Page:       page,
+		PerPage:    limit,
+		TotalPages: totalPages,
+		TotalItems: total,
+	}
+
+	response.NewPaginatedSuccessResponse(w, practicums, pagination, "Students retrieved successfully")
 }

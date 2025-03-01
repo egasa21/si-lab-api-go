@@ -4,11 +4,13 @@ import (
 	"database/sql"
 
 	"github.com/egasa21/si-lab-api-go/internal/model"
+	"github.com/rs/zerolog/log"
 )
 
 type PracticumRepository interface {
 	CreatePracticum(practicum *model.Practicum) error
 	GetPracticumByID(id int) (*model.Practicum, error)
+	GetAllPracticums(page, limit int) ([]model.Practicum, int, error)
 }
 
 type practicumRepository struct {
@@ -58,4 +60,37 @@ func (r *practicumRepository) GetPracticumByID(id int) (*model.Practicum, error)
 		return nil, err
 	}
 	return &practicum, nil
+}
+
+func (r *practicumRepository) GetAllPracticums(page, limit int) ([]model.Practicum, int, error) {
+	offset := (page - 1) * limit
+
+	rows, err := r.db.Query(
+		"SELECT id_practicum, name, code, description, credits, semester, created_at, updated_at FROM practicums LIMIT $1 OFFSET $2",
+		limit, offset,
+	)
+	if err != nil {
+		log.Error().Err(err)
+		return nil, 0, err
+	}
+
+	defer rows.Close()
+
+	var practicums []model.Practicum
+	for rows.Next() {
+		var practicum model.Practicum
+		if err := rows.Scan(&practicum.ID, &practicum.Name, &practicum.Code, &practicum.Description, &practicum.Credits, &practicum.Semester, &practicum.CreatedAt, &practicum.UpdatedAt); err != nil {
+			return nil, 0, err
+		}
+		practicums = append(practicums, practicum)
+	}
+
+	var total int
+	err = r.db.QueryRow("SELECT COUNT(*) FROM practicums").Scan(&total)
+	if err != nil {
+		log.Error().Err(err)
+		return nil, 0, err
+	}
+
+	return practicums, total, nil
 }
