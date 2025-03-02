@@ -34,21 +34,24 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	authRepository := repository.NewAuthRepository(db)
 	practicumRepository := repository.NewPracticumRepository(db)
 	practicumModuleRepository := repository.NewPracticumModuleRepository(db)
-	practicumModuleContentRepository := repository.NewPracticumModuleContentRepository(db) // New
+	practicumModuleContentRepository := repository.NewPracticumModuleContentRepository(db)
+	practicumClassRepository := repository.NewPracticumClassRepository(db)
 
 	// Initialize services
 	studentService := service.NewStudentService(studentRepository)
 	authService := service.NewAuthService(authRepository)
 	practicumService := service.NewPracticumService(practicumRepository)
 	practicumModuleService := service.NewPracticumModuleService(practicumModuleRepository)
-	practicumModuleContentService := service.NewPracticumModuleContentService(practicumModuleContentRepository) // New
+	practicumModuleContentService := service.NewPracticumModuleContentService(practicumModuleContentRepository)
+	practicumClassService := service.NewPracticumClassService(practicumClassRepository)
 
 	// Initialize handlers
 	studentHandler := handler.NewStudentHandler(studentService)
 	authHandler := handler.NewAuthHandler(authService)
 	practicumHandler := handler.NewPracticumHandler(practicumService)
 	practicumModuleHandler := handler.NewPracticumModuleHandler(practicumModuleService)
-	practicumModuleContentHandler := handler.NewPracticumModuleContentHandler(practicumModuleContentService) // New
+	practicumModuleContentHandler := handler.NewPracticumModuleContentHandler(practicumModuleContentService)
+	practicumClassHandler := handler.NewPracticumClassHandler(practicumClassService)
 
 	// Initialize main router
 	mux := http.NewServeMux()
@@ -73,6 +76,13 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	v1Router.HandleFunc("POST /practicum-module-contents", practicumModuleContentHandler.CreateContent)
 	v1Router.HandleFunc("GET /practicum-module-contents/{id}", practicumModuleContentHandler.GetContentByID)
 	v1Router.HandleFunc("GET /practicum-modules/{module_id}/contents", practicumModuleContentHandler.GetContentsByModuleID)
+
+	// practicum class
+	v1Router.HandleFunc("POST /practicum-classes", practicumClassHandler.CreateClass)
+	v1Router.HandleFunc("GET /practicum-classes/{id}", practicumClassHandler.GetClassByID)
+	v1Router.HandleFunc("GET /practicums/{practicum_id}/classes", practicumClassHandler.GetClassesByPracticumID)
+	v1Router.HandleFunc("PUT /practicum-classes/{id}", practicumClassHandler.UpdateClass)
+	v1Router.HandleFunc("DELETE /practicum-classes/{id}", practicumClassHandler.DeleteClass)
 
 	// auth
 	v1Router.HandleFunc("POST /auth/register", authHandler.Register)

@@ -1,0 +1,1 @@
+ALTER TABLE practicum_class ALTER COLUMN time TYPE TIME USING time::TIME;
