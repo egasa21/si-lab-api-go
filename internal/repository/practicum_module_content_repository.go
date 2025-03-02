@@ -54,7 +54,7 @@ func (r *practicumModuleContentRepository) CreateContent(content *model.Practicu
 func (r *practicumModuleContentRepository) GetContentByID(id int) (*model.PracticumModuleContent, error) {
 	var content model.PracticumModuleContent
 	err := r.db.QueryRow(
-		"SELECT id_content, id_module, title, content, sequence, created_at, updated_at FROM practicum_module_contents WHERE id_content = $1", id,
+		"SELECT id_content, id_module, title, content, sequence, created_at, updated_at FROM practicum_module_content WHERE id_content = $1", id,
 	).Scan(&content.IDContent, &content.IDModule, &content.Title, &content.Content, &content.Sequence, &content.CreatedAt, &content.UpdatedAt)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (r *practicumModuleContentRepository) GetContentsByModuleID(moduleID, page,
 	offset := (page - 1) * limit
 
 	rows, err := r.db.Query(
-		"SELECT id_content, id_module, title, content, sequence, created_at, updated_at FROM practicum_module_contents WHERE id_module = $1 ORDER BY sequence LIMIT $2 OFFSET $3",
+		"SELECT id_content, id_module, title, content, sequence, created_at, updated_at FROM practicum_module_content WHERE id_module = $1 ORDER BY sequence LIMIT $2 OFFSET $3",
 		moduleID, limit, offset,
 	)
 	if err != nil {
@@ -85,7 +85,7 @@ func (r *practicumModuleContentRepository) GetContentsByModuleID(moduleID, page,
 	}
 
 	var total int
-	err = r.db.QueryRow("SELECT COUNT(*) FROM practicum_module_contents WHERE id_module = $1", moduleID).Scan(&total)
+	err = r.db.QueryRow("SELECT COUNT(*) FROM practicum_module_content WHERE id_module = $1", moduleID).Scan(&total)
 	if err != nil {
 		log.Error().Err(err)
 		return nil, 0, err
