@@ -34,18 +34,21 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	authRepository := repository.NewAuthRepository(db)
 	practicumRepository := repository.NewPracticumRepository(db)
 	practicumModuleRepository := repository.NewPracticumModuleRepository(db)
+	practicumModuleContentRepository := repository.NewPracticumModuleContentRepository(db) // New
 
 	// Initialize services
 	studentService := service.NewStudentService(studentRepository)
 	authService := service.NewAuthService(authRepository)
 	practicumService := service.NewPracticumService(practicumRepository)
 	practicumModuleService := service.NewPracticumModuleService(practicumModuleRepository)
+	practicumModuleContentService := service.NewPracticumModuleContentService(practicumModuleContentRepository) // New
 
 	// Initialize handlers
 	studentHandler := handler.NewStudentHandler(studentService)
 	authHandler := handler.NewAuthHandler(authService)
 	practicumHandler := handler.NewPracticumHandler(practicumService)
 	practicumModuleHandler := handler.NewPracticumModuleHandler(practicumModuleService)
+	practicumModuleContentHandler := handler.NewPracticumModuleContentHandler(practicumModuleContentService) // New
 
 	// Initialize main router
 	mux := http.NewServeMux()
@@ -65,6 +68,11 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	v1Router.HandleFunc("GET /practicums/{practicum_id}/modules", practicumModuleHandler.GetModulesByPracticumID)
 	v1Router.HandleFunc("POST /practicum-modules", practicumModuleHandler.CreateModule)
 	v1Router.HandleFunc("GET /practicum-modules/{id}", practicumModuleHandler.GetModuleByID)
+
+	// practicum module content
+	v1Router.HandleFunc("POST /practicum-module-contents", practicumModuleContentHandler.CreateContent)
+	v1Router.HandleFunc("GET /practicum-module-contents/{id}", practicumModuleContentHandler.GetContentByID)
+	v1Router.HandleFunc("GET /practicum-modules/{module_id}/contents", practicumModuleContentHandler.GetContentsByModuleID)
 
 	// auth
 	v1Router.HandleFunc("POST /auth/register", authHandler.Register)
