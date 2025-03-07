@@ -40,6 +40,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	practicumModuleContentRepository := repository.NewPracticumModuleContentRepository(db)
 	practicumClassRepository := repository.NewPracticumClassRepository(db)
 	studentRegistrationRepository := repository.NewStudentRegistrationRepository(db)
+	studentClassEnrollmentRepository := repository.NewStudentClassEnrollmentRepository(db)
 
 	// Initialize services
 	studentService := service.NewStudentService(studentRepository)
@@ -49,6 +50,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	practicumModuleContentService := service.NewPracticumModuleContentService(practicumModuleContentRepository)
 	practicumClassService := service.NewPracticumClassService(practicumClassRepository)
 	studentRegistrationService := service.NewStudentRegistrationService(studentRegistrationRepository)
+	studentClassEnrollmentService := service.NewStudentClassEnrollmentService(studentClassEnrollmentRepository)
 
 	// Initialize handlers
 	studentHandler := handler.NewStudentHandler(studentService)
@@ -58,6 +60,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	practicumModuleContentHandler := handler.NewPracticumModuleContentHandler(practicumModuleContentService)
 	practicumClassHandler := handler.NewPracticumClassHandler(practicumClassService)
 	studentRegistrationHandler := handler.NewStudentRegistrationHandler(studentRegistrationService)
+	studentClassEnrollmentHandler := handler.NewStudentClassEnrollmentHandler(studentClassEnrollmentService)
 
 	// Initialize main router
 	mux := http.NewServeMux()
@@ -73,6 +76,12 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	v1Router.HandleFunc("GET /students/{student_id}/registrations", studentRegistrationHandler.GetRegistrationsByStudentID)
 	v1Router.HandleFunc("GET /practicums/{practicum_id}/registrations", studentRegistrationHandler.GetRegistrationsByPracticumID)
 	v1Router.HandleFunc("DELETE /student-registrations/{id}", studentRegistrationHandler.DeleteRegistration)
+
+	// student class enrollment
+	v1Router.HandleFunc("POST /student-class-enrollments", studentClassEnrollmentHandler.EnrollStudent)
+	v1Router.HandleFunc("GET /students/{student_id}/class-enrollments", studentClassEnrollmentHandler.GetEnrollmentsByStudentID)
+	v1Router.HandleFunc("GET /practicum-classes/{class_id}/enrollments", studentClassEnrollmentHandler.GetEnrollmentsByClassID)
+	v1Router.HandleFunc("DELETE /student-class-enrollments/{id}", studentClassEnrollmentHandler.UnenrollStudent)
 
 	// practicum
 	v1Router.HandleFunc("GET /practicums", practicumHandler.GetAllPracticums)
