@@ -2,8 +2,6 @@ module github.com/egasa21/si-lab-api-go
 
 go 1.23.4
 
-toolchain go1.22.10
-
 require github.com/joho/godotenv v1.5.1
 
 require (
@@ -18,6 +16,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/midtrans/midtrans-go v1.3.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/rs/zerolog v1.33.0 // indirect
