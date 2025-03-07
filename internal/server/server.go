@@ -16,6 +16,9 @@ import (
 
 type middleware func(http.Handler) http.Handler
 
+// todo: implement the student payment
+// todo: update the class enrollment by payment success
+
 type Server struct {
 	server *http.Server
 	logger zerolog.Logger
