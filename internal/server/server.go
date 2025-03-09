@@ -41,6 +41,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	practicumClassRepository := repository.NewPracticumClassRepository(db)
 	studentRegistrationRepository := repository.NewStudentRegistrationRepository(db)
 	studentClassEnrollmentRepository := repository.NewStudentClassEnrollmentRepository(db)
+	userPracticumProgressRepository := repository.NewUserPracticumProgressRepository(db)
 
 	// Initialize services
 	studentService := service.NewStudentService(studentRepository)
@@ -51,6 +52,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	practicumClassService := service.NewPracticumClassService(practicumClassRepository)
 	studentRegistrationService := service.NewStudentRegistrationService(studentRegistrationRepository)
 	studentClassEnrollmentService := service.NewStudentClassEnrollmentService(studentClassEnrollmentRepository)
+	userPracticumProgressService := service.NewUserPracticumProgressService(userPracticumProgressRepository)
 
 	// Initialize handlers
 	studentHandler := handler.NewStudentHandler(studentService)
@@ -61,6 +63,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	practicumClassHandler := handler.NewPracticumClassHandler(practicumClassService)
 	studentRegistrationHandler := handler.NewStudentRegistrationHandler(studentRegistrationService)
 	studentClassEnrollmentHandler := handler.NewStudentClassEnrollmentHandler(studentClassEnrollmentService)
+	userPracticumProgressHandler := handler.NewUserPracticumProgressHandler(userPracticumProgressService) // Added
 
 	// Initialize main router
 	mux := http.NewServeMux()
@@ -104,6 +107,13 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	v1Router.HandleFunc("GET /practicums/{practicum_id}/classes", practicumClassHandler.GetClassesByPracticumID)
 	v1Router.HandleFunc("PUT /practicum-classes/{id}", practicumClassHandler.UpdateClass)
 	v1Router.HandleFunc("DELETE /practicum-classes/{id}", practicumClassHandler.DeleteClass)
+
+	// user practicum progress
+	v1Router.HandleFunc("POST /user-practicum-progress", userPracticumProgressHandler.CreateProgress)
+	v1Router.HandleFunc("GET /user-practicum-progress/{user_id}/{practicum_id}", userPracticumProgressHandler.GetProgress)
+	v1Router.HandleFunc("PUT /user-practicum-progress/{id}", userPracticumProgressHandler.UpdateProgress)
+	v1Router.HandleFunc("PUT /user-practicum-progress/{user_id}/{practicum_id}/complete", userPracticumProgressHandler.MarkAsCompleted)
+	v1Router.HandleFunc("DELETE /user-practicum-progress/{id}", userPracticumProgressHandler.DeleteProgress)
 
 	// auth
 	v1Router.HandleFunc("POST /auth/register", authHandler.Register)
