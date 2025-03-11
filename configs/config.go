@@ -20,9 +20,12 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+
+	if os.Getenv("DYNO") == "" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatalf("Error loading .env file: %v", err)
+		}
 	}
 
 	// Parse boolean for LOG_ERROR_STACK
@@ -38,7 +41,7 @@ func LoadConfig() *Config {
 		DBPassword:    os.Getenv("DB_PASSWORD"),
 		DBName:        os.Getenv("DB_NAME"),
 		AppPort:       os.Getenv("APP_PORT"),
-		LogLevel:      os.Getenv("LOG_LEVEL"), // Logging level (e.g., "info", "debug")
-		LogErrorStack: logErrorStack,       
+		LogLevel:      os.Getenv("LOG_LEVEL"),
+		LogErrorStack: logErrorStack,
 	}
 }
