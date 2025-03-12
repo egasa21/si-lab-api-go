@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"path/filepath"
 
 	"github.com/egasa21/si-lab-api-go/configs"
 	"github.com/golang-migrate/migrate/v4"
@@ -45,10 +44,11 @@ func ConnectDB(cfg *configs.Config) (*sql.DB, error) {
 func RunMigrations(ctx context.Context, cfg *configs.Config) error {
 	// Construct the migrations path (example using project root)
 	// projectRoot := os.Getenv("PROJECT_ROOT")
-	migrationsPath, err := filepath.Abs("../../internal/database/migrations")
-	if err != nil {
-		return fmt.Errorf("error getting absolute path for migrations: %w", err)
-	}
+	migrationsPath := "internal/database/migrations"
+
+	// if err != nil {
+	// 	return fmt.Errorf("error getting absolute path for migrations: %w", err)
+	// }
 
 	// Construct the file source URL
 	fileSourceURL := "file://" + migrationsPath
