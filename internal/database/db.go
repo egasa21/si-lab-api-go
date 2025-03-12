@@ -54,7 +54,7 @@ func RunMigrations(ctx context.Context, cfg *configs.Config) error {
 	fileSourceURL := "file://" + migrationsPath
 
 	// Construct the database URL
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=require",
 		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 
 	// Initialize the migration
