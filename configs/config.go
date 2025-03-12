@@ -34,13 +34,18 @@ func LoadConfig() *Config {
 		logErrorStack = true
 	}
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // Default port
+	}
+
 	return &Config{
 		DBHost:        os.Getenv("DB_HOST"),
 		DBPort:        os.Getenv("DB_PORT"),
 		DBUser:        os.Getenv("DB_USER"),
 		DBPassword:    os.Getenv("DB_PASSWORD"),
 		DBName:        os.Getenv("DB_NAME"),
-		AppPort:       os.Getenv("APP_PORT"),
+		AppPort:       port,
 		LogLevel:      os.Getenv("LOG_LEVEL"),
 		LogErrorStack: logErrorStack,
 	}
