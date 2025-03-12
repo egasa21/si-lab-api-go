@@ -128,6 +128,8 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	v1Router.HandleFunc("POST /auth/register", authHandler.Register)
 	v1Router.HandleFunc("POST /auth/login", authHandler.Login)
 
+	v1Router.HandleFunc("/health", healthCheckHandler)
+
 	// v1
 	mux.Handle("/v1/", http.StripPrefix("/v1", v1Router))
 
@@ -176,6 +178,12 @@ func Logger(logger zerolog.Logger) middleware {
 				Msg("Request completed")
 		})
 	}
+}
+
+func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
+	// You can add more checks here if needed (e.g., database, external services)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
 
 // Middleware chaining function
