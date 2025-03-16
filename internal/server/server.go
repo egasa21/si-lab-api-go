@@ -32,6 +32,8 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 		logger.Fatal().Err(err).Msg("Failed to connect to database")
 	}
 
+	allowedOrigins := []string{"*"}
+
 	// Initialize repositories
 	studentRepository := repository.NewStudentRepository(db)
 	authRepository := repository.NewAuthRepository(db)
@@ -134,7 +136,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	mux.Handle("/v1/", http.StripPrefix("/v1", v1Router))
 
 	// Wrap the router with middleware
-	handlerWithMiddleware := wrapMiddleware(mux, Logger(logger))
+	handlerWithMiddleware := wrapMiddleware(mux, CORSMiddleware(allowedOrigins), Logger(logger))
 
 	// Setup HTTP server
 	server := &http.Server{
