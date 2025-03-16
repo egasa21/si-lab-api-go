@@ -32,7 +32,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 		logger.Fatal().Err(err).Msg("Failed to connect to database")
 	}
 
-	allowedOrigins := []string{"*"}
+	allowedOrigins := []string{"http://localhost:5173"}
 
 	// Initialize repositories
 	studentRepository := repository.NewStudentRepository(db)
