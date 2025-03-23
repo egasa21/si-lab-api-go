@@ -50,14 +50,14 @@ func (h *UserPracticumCheckpointHandler) CreateCheckpoint(w http.ResponseWriter,
 
 // GetCheckpointByUserAndPracticum retrieves a checkpoint by user ID and practicum ID
 func (h *UserPracticumCheckpointHandler) GetCheckpointByUserAndPracticum(w http.ResponseWriter, r *http.Request) {
-	userID, err := strconv.Atoi(r.URL.Query().Get("user_id"))
+	userID, err := strconv.Atoi(r.PathValue("user_id"))
 	if err != nil {
 		appErr := pkg.NewAppError("Invalid user ID", http.StatusBadRequest)
 		response.NewErrorResponse(w, appErr)
 		return
 	}
 
-	practicumID, err := strconv.Atoi(r.URL.Query().Get("practicum_id"))
+	practicumID, err := strconv.Atoi(r.PathValue("practicum_id"))
 	if err != nil {
 		appErr := pkg.NewAppError("Invalid practicum ID", http.StatusBadRequest)
 		response.NewErrorResponse(w, appErr)
@@ -80,6 +80,30 @@ func (h *UserPracticumCheckpointHandler) GetCheckpointByUserAndPracticum(w http.
 
 	// Respond with the checkpoint data
 	response.NewSuccessResponse(w, checkpoint, "Checkpoint retrieved successfully")
+}
+
+// todo: return with the data, not only the id
+func (h *UserPracticumCheckpointHandler) GetCheckpointByUser(w http.ResponseWriter, r *http.Request) {
+	userID, err := strconv.Atoi(r.PathValue("user_id"))
+	if err != nil {
+		appErr := pkg.NewAppError("Invalid user ID", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+	userCheckpoint, err := h.service.GetCheckpointByUser(userID)
+	if err != nil {
+		appErr := pkg.NewAppError("Unable to fetch checkpoint", http.StatusInternalServerError)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+	if userCheckpoint == nil {
+		appErr := pkg.NewAppError("Checkpoint not found", http.StatusNotFound)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	// Respond with the checkpoint data
+	response.NewSuccessResponse(w, userCheckpoint, "Checkpoint retrieved successfully")
 }
 
 // UpdateCheckpoint handles updating a user practicum checkpoint
@@ -112,7 +136,7 @@ func (h *UserPracticumCheckpointHandler) UpdateCheckpoint(w http.ResponseWriter,
 
 // DeleteCheckpoint handles the deletion of a checkpoint by ID
 func (h *UserPracticumCheckpointHandler) DeleteCheckpoint(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		appErr := pkg.NewAppError("Invalid checkpoint ID", http.StatusBadRequest)
 		response.NewErrorResponse(w, appErr)

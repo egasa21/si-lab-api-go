@@ -10,7 +10,7 @@ import (
 type UserPracticumCheckpointRepository interface {
 	CreateCheckpoint(checkpoint *model.UserPracticumCheckpoint) error
 	GetCheckpointByUserAndPracticum(userID, practicumID int) (*model.UserPracticumCheckpoint, error)
-	// GetCheckpointByUser(userID int)
+	GetCheckpointByUser(userID int) ([]model.UserPracticumCheckpoint, error)
 	UpdateCheckpoint(checkpoint *model.UserPracticumCheckpoint) error
 	DeleteCheckpoint(id int) error
 }
@@ -60,7 +60,31 @@ func (r *userPracticumCheckpointRepository) GetCheckpointByUserAndPracticum(user
 	return &checkpoint, nil
 }
 
-// UpdateCheckpoint updates an existing checkpoint record
+func (r *userPracticumCheckpointRepository) GetCheckpointByUser(userID int) ([]model.UserPracticumCheckpoint, error) {
+	query := `
+		SELECT id, id_user, id_practicum, id_module, id_content, updated_at
+		FROM user_practicum_checkpoint
+		WHERE id_user = $1
+	`
+	rows, err := r.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var userCheckpoints []model.UserPracticumCheckpoint
+	for rows.Next() {
+		var userCheckpoint model.UserPracticumCheckpoint
+		if err := rows.Scan(&userCheckpoint.ID, &userCheckpoint.UserID, &userCheckpoint.PracticumID, &userCheckpoint.ModuleID, &userCheckpoint.ContentID, &userCheckpoint.UpdatedAt); err != nil {
+			return nil, err
+		}
+		userCheckpoints = append(userCheckpoints, userCheckpoint)
+	}
+
+	return userCheckpoints, nil
+
+}
+
 func (r *userPracticumCheckpointRepository) UpdateCheckpoint(checkpoint *model.UserPracticumCheckpoint) error {
 	query := `
 		UPDATE user_practicum_checkpoint

@@ -9,6 +9,7 @@ import (
 type UserPracticumCheckpointService interface {
 	CreateCheckpoint(checkpoint *model.UserPracticumCheckpoint) error
 	GetCheckpointByUserAndPracticum(userID, practicumID int) (*model.UserPracticumCheckpoint, error)
+	GetCheckpointByUser(userID int) ([]model.UserPracticumCheckpoint, error)
 	UpdateCheckpoint(checkpoint *model.UserPracticumCheckpoint) error
 	DeleteCheckpoint(id int) error
 }
@@ -43,6 +44,18 @@ func (s *userPracticumCheckpointService) GetCheckpointByUserAndPracticum(userID,
 		log.Info().Msg("Checkpoint not found")
 	}
 	return checkpoint, nil
+}
+
+func (s *userPracticumCheckpointService) GetCheckpointByUser(userID int) ([]model.UserPracticumCheckpoint, error) {
+	userCheckpoint, err := s.repo.GetCheckpointByUser(userID)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get user practicum checkpoint")
+		return nil, err
+	}
+	if userCheckpoint == nil {
+		log.Info().Msg("Checkpoint not found")
+	}
+	return userCheckpoint, nil
 }
 
 // UpdateCheckpoint updates an existing user practicum checkpoint

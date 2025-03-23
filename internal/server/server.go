@@ -123,6 +123,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 
 	// user practicum checkpoint
 	v1Router.HandleFunc("POST /user-practicum-checkpoints", userPracticumCheckpointHandler.CreateCheckpoint)
+	v1Router.HandleFunc("GET /user-practicum-checkpoints/{user_id}", userPracticumCheckpointHandler.GetCheckpointByUser)
 	v1Router.HandleFunc("GET /user-practicum-checkpoints/{user_id}/{practicum_id}", userPracticumCheckpointHandler.GetCheckpointByUserAndPracticum)
 	v1Router.HandleFunc("PUT /user-practicum-checkpoints/{id}", userPracticumCheckpointHandler.UpdateCheckpoint)
 	v1Router.HandleFunc("DELETE /user-practicum-checkpoints/{id}", userPracticumCheckpointHandler.DeleteCheckpoint)
