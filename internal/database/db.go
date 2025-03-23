@@ -14,7 +14,7 @@ import (
 
 // ConnectDB connects to the database
 func ConnectDB(cfg *configs.Config) (*sql.DB, error) {
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
 		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName)
 
 	db, err := sql.Open("postgres", dsn)
@@ -54,7 +54,7 @@ func RunMigrations(ctx context.Context, cfg *configs.Config) error {
 	fileSourceURL := "file://" + migrationsPath
 
 	// Construct the database URL
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=require",
 		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 
 	// Initialize the migration
