@@ -78,6 +78,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	v1Router.Handle("GET /students", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetAllStudents)))
 	v1Router.Handle("GET /students/{id}", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetStudentById)))
 	v1Router.HandleFunc("POST /students", studentHandler.CreateStudent)
+	// todo : add student practicum activities and schedule
 
 	// student registration
 	v1Router.HandleFunc("POST /student-registrations", studentRegistrationHandler.RegisterStudent)

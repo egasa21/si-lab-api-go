@@ -10,6 +10,7 @@ import (
 type UserPracticumCheckpointRepository interface {
 	CreateCheckpoint(checkpoint *model.UserPracticumCheckpoint) error
 	GetCheckpointByUserAndPracticum(userID, practicumID int) (*model.UserPracticumCheckpoint, error)
+	// GetCheckpointByUser(userID int)
 	UpdateCheckpoint(checkpoint *model.UserPracticumCheckpoint) error
 	DeleteCheckpoint(id int) error
 }

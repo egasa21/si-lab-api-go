@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/egasa21/si-lab-api-go/internal/dto"
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/egasa21/si-lab-api-go/internal/pkg"
 
@@ -96,7 +97,7 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.service.CreateStudent(&student)
+	studentID, err := h.service.CreateStudent(&student)
 	if err != nil {
 
 		fmt.Print(err)
@@ -105,5 +106,9 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.NewSuccessResponse(w, nil, "Student created successfully")
+	responseData := dto.StudentCreateResponse{
+		StudentID: studentID,
+	}
+
+	response.NewSuccessResponse(w, responseData, "Student created successfully")
 }
