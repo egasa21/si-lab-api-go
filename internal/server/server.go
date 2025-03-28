@@ -57,9 +57,10 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	studentClassEnrollmentService := service.NewStudentClassEnrollmentService(studentClassEnrollmentRepository)
 	userPracticumProgressService := service.NewUserPracticumProgressService(userPracticumProgressRepository)
 	userPracticumCheckpointService := service.NewUserPracticumCheckpointService(userPracticumCheckpointRepository)
+	studentDataService := service.NewStudentDataService(userPracticumCheckpointService, practicumService, practicumModuleService, practicumModuleContentService)
 
 	// Initialize handlers
-	studentHandler := handler.NewStudentHandler(studentService)
+	studentHandler := handler.NewStudentHandler(studentService, studentDataService)
 	authHandler := handler.NewAuthHandler(authService)
 	practicumHandler := handler.NewPracticumHandler(practicumService)
 	practicumModuleHandler := handler.NewPracticumModuleHandler(practicumModuleService)
@@ -78,7 +79,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	v1Router.Handle("GET /students", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetAllStudents)))
 	v1Router.Handle("GET /students/{id}", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetStudentById)))
 	v1Router.HandleFunc("POST /students", studentHandler.CreateStudent)
-	// todo : add student practicum activities and schedule
+	v1Router.HandleFunc("GET /students/{id}/activities", studentHandler.GetStudentPracticumActivities)
 
 	// student registration
 	v1Router.HandleFunc("POST /student-registrations", studentRegistrationHandler.RegisterStudent)

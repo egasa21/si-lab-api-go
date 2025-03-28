@@ -17,7 +17,9 @@ type UserPracticumCheckpointHandler struct {
 }
 
 func NewUserPracticumCheckpointHandler(service service.UserPracticumCheckpointService) *UserPracticumCheckpointHandler {
-	return &UserPracticumCheckpointHandler{service: service}
+	return &UserPracticumCheckpointHandler{
+		service: service,
+	}
 }
 
 // CreateCheckpoint handles the creation of a new user practicum checkpoint

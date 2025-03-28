@@ -2,6 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/rs/zerolog/log"
@@ -10,6 +13,7 @@ import (
 type PracticumRepository interface {
 	CreatePracticum(practicum *model.Practicum) error
 	GetPracticumByID(id int) (*model.Practicum, error)
+	GetPracticumByIDs(ids []int) ([]model.Practicum, error)
 	GetAllPracticums(page, limit int) ([]model.Practicum, int, error)
 }
 
@@ -93,4 +97,40 @@ func (r *practicumRepository) GetAllPracticums(page, limit int) ([]model.Practic
 	}
 
 	return practicums, total, nil
+}
+
+func (r *practicumRepository) GetPracticumByIDs(ids []int) ([]model.Practicum, error) {
+	if len(ids) == 0 {
+		return []model.Practicum{}, nil
+	}
+
+	placeholders := make([]string, len(ids))
+	for i := range ids {
+		placeholders[i] = "$" + strconv.Itoa(i+1) // PostgreSQL uses $1, $2, ...
+	}
+
+	inClause := strings.Join(placeholders, ",")
+	query := fmt.Sprintf("SELECT id_practicum, name, code, description, credits, semester, created_at, updated_at FROM practicums WHERE id_practicum IN (%s)", inClause)
+
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	practicums := []model.Practicum{}
+	for rows.Next() {
+		practicum := model.Practicum{}
+		if err := rows.Scan(&practicum.ID, &practicum.Name, &practicum.Code, &practicum.Description, &practicum.Credits, &practicum.Semester, &practicum.CreatedAt, &practicum.UpdatedAt); err != nil {
+			return nil, err
+		}
+		practicums = append(practicums, practicum)
+	}
+
+	return practicums, nil
 }

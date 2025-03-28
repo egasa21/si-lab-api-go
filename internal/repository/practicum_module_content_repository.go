@@ -2,6 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/rs/zerolog/log"
@@ -10,6 +13,7 @@ import (
 type PracticumModuleContentRepository interface {
 	CreateContent(content *model.PracticumModuleContent) error
 	GetContentByID(id int) (*model.PracticumModuleContent, error)
+	GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error)
 	GetContentsByModuleID(moduleID, page, limit int) ([]model.PracticumModuleContent, int, error)
 }
 
@@ -92,4 +96,39 @@ func (r *practicumModuleContentRepository) GetContentsByModuleID(moduleID, page,
 	}
 
 	return contents, total, nil
+}
+
+func (r *practicumModuleContentRepository) GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error) {
+	if len(ids) == 0 {
+		return []model.PracticumModuleContent{}, nil
+	}
+
+	placeholders := make([]string, len(ids))
+	for i := range ids {
+		placeholders[i] = "$" + strconv.Itoa(i+1)
+	}
+
+	inClause := strings.Join(placeholders, ",")
+	query := fmt.Sprintf("SELECT id_content, id_module, title, content, sequence, created_at, updated_at FROM practicum_module_content WHERE id_content IN (%s)", inClause)
+
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	practicumModuleContents := []model.PracticumModuleContent{}
+	for rows.Next() {
+		practicumModuleContent := model.PracticumModuleContent{}
+		if err := rows.Scan(&practicumModuleContent.IDContent, &practicumModuleContent.IDModule, &practicumModuleContent.Title, &practicumModuleContent.Content, &practicumModuleContent.Sequence, &practicumModuleContent.CreatedAt, &practicumModuleContent.UpdatedAt); err != nil {
+			return nil, err
+		}
+		practicumModuleContents = append(practicumModuleContents, practicumModuleContent)
+	}
+	return practicumModuleContents, nil
 }

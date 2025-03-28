@@ -8,6 +8,7 @@ import (
 type PracticumModuleContentService interface {
 	CreateContent(content *model.PracticumModuleContent) error
 	GetContentByID(id int) (*model.PracticumModuleContent, error)
+	GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error)
 	GetContentsByModuleID(moduleID, page, limit int) ([]model.PracticumModuleContent, int, error)
 }
 
@@ -29,4 +30,8 @@ func (s *practicumModuleContentService) GetContentByID(id int) (*model.Practicum
 
 func (s *practicumModuleContentService) GetContentsByModuleID(moduleID, page, limit int) ([]model.PracticumModuleContent, int, error) {
 	return s.repo.GetContentsByModuleID(moduleID, page, limit)
+}
+
+func (s *practicumModuleContentService) GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error) {
+	return s.repo.GetContentByIDs(ids)
 }

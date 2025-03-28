@@ -10,17 +10,22 @@ import (
 	"github.com/egasa21/si-lab-api-go/internal/dto"
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/egasa21/si-lab-api-go/internal/pkg"
+	"github.com/rs/zerolog/log"
 
 	"github.com/egasa21/si-lab-api-go/internal/pkg/response"
 	"github.com/egasa21/si-lab-api-go/internal/service"
 )
 
 type StudentHandler struct {
-	service service.StudentService
+	studentService     service.StudentService
+	studentDataService service.StudentDataService
 }
 
-func NewStudentHandler(service service.StudentService) *StudentHandler {
-	return &StudentHandler{service: service}
+func NewStudentHandler(studentService service.StudentService, studentDataService service.StudentDataService) *StudentHandler {
+	return &StudentHandler{
+		studentService:     studentService,
+		studentDataService: studentDataService,
+	}
 }
 
 func (h *StudentHandler) GetAllStudents(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +43,7 @@ func (h *StudentHandler) GetAllStudents(w http.ResponseWriter, r *http.Request) 
 		limit = 10 // Default limit
 	}
 
-	students, total, err := h.service.GetAllStudents(page, limit)
+	students, total, err := h.studentService.GetAllStudents(page, limit)
 	if err != nil {
 		// Return error response with status 500
 		appErr := pkg.NewAppError("Unable to fetch students", http.StatusInternalServerError)
@@ -66,7 +71,8 @@ func (h *StudentHandler) GetStudentById(w http.ResponseWriter, r *http.Request) 
 		response.NewErrorResponse(w, appErr)
 		return
 	}
-	student, err := h.service.GetStudentByID(id)
+
+	student, err := h.studentService.GetStudentByID(id)
 	if err != nil {
 
 		appErr := pkg.NewAppError("Student not found", http.StatusNotFound)
@@ -89,7 +95,7 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check existing student
-	existingStudent, err := h.service.GetStudentByStudentID(student.StudentIDNumber)
+	existingStudent, err := h.studentService.GetStudentByStudentID(student.StudentIDNumber)
 	if err == nil && existingStudent != nil {
 
 		appErr := pkg.NewAppError("Student with this ID number is already registered", http.StatusConflict)
@@ -97,7 +103,7 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	studentID, err := h.service.CreateStudent(&student)
+	studentID, err := h.studentService.CreateStudent(&student)
 	if err != nil {
 
 		fmt.Print(err)
@@ -111,4 +117,23 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.NewSuccessResponse(w, responseData, "Student created successfully")
+}
+
+func (h *StudentHandler) GetStudentPracticumActivities(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		appErr := pkg.NewAppError("Invalid ID", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	studentActivities, err := h.studentDataService.GetStudentPracticumActivity(id)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed ngab")
+		appErr := pkg.NewAppError("Student Activities not found", http.StatusNotFound)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	response.NewSuccessResponse(w, studentActivities, "student activities retrieved successfully")
 }

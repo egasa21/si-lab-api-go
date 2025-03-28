@@ -1,9 +1,12 @@
 package dto
 
 type StudentPracticumActivity struct {
-	PracticumName   string `json:"practicum_name"`
-	ModuleName      string `json:"module_name"`
-	ModuleContentID int    `json:"module_content_id"`
+	ID                int    `json:"id"`
+	PracticumName     string `json:"practicum_name"`
+	ModuleName        string `json:"module_name"`
+	ModuleContentName string `json:"module_content_name"`
+	ModuleSequence    int    `json:"module_sequence"`
+	ModuleContentID   int    `json:"module_content_id"`
 }
 
 type StudentCreateResponse struct {

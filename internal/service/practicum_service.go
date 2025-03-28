@@ -8,6 +8,7 @@ import (
 type PracticumService interface {
 	CreatePracticum(practicum *model.Practicum) error
 	GetPracticumByID(id int) (*model.Practicum, error)
+	GetPracticumByIDs(ids []int) ([]model.Practicum, error)
 	GetAllPracticums(page, limit int) ([]model.Practicum, int, error)
 }
 
@@ -29,4 +30,8 @@ func (s *practicumService) GetPracticumByID(id int) (*model.Practicum, error) {
 
 func (s *practicumService) GetAllPracticums(page, limit int) ([]model.Practicum, int, error) {
 	return s.repo.GetAllPracticums(page, limit)
+}
+
+func (s *practicumService) GetPracticumByIDs(ids []int) ([]model.Practicum, error) {
+	return s.repo.GetPracticumByIDs(ids)
 }
