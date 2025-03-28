@@ -2,6 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/rs/zerolog/log"
@@ -10,6 +13,7 @@ import (
 type UserPracticumProgressRepository interface {
 	CreateProgress(progress *model.UserPracticumProgress) error
 	GetProgressByUserAndPracticum(userID, practicumID int) (*model.UserPracticumProgress, error)
+	GetProgressByPracticumIDs(pracIDs []int) ([]model.UserPracticumProgress, error)
 	UpdateProgress(progress *model.UserPracticumProgress) error
 	DeleteProgress(id int) error
 }
@@ -75,4 +79,39 @@ func (r *userPracticumProgressRepository) DeleteProgress(id int) error {
 		return err
 	}
 	return nil
+}
+
+func (r *userPracticumProgressRepository) GetProgressByPracticumIDs(pracIDs []int) ([]model.UserPracticumProgress, error) {
+	if len(pracIDs) == 0 {
+		return []model.UserPracticumProgress{}, nil
+	}
+
+	placeholders := make([]string, len(pracIDs))
+	for i := range pracIDs {
+		placeholders[i] = "$" + strconv.Itoa(i+1)
+	}
+
+	inClause := strings.Join(placeholders, ",")
+	query := fmt.Sprintf("SELECT id, id_user, id_practicum, progress, completed_at, last_updated_at FROM user_practicum_progress WHERE id_practicum IN (%s)", inClause)
+
+	args := make([]interface{}, len(pracIDs))
+	for i, id := range pracIDs {
+		args[i] = id
+	}
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	practicumProgresses := []model.UserPracticumProgress{}
+	for rows.Next() {
+		practicumProgress := model.UserPracticumProgress{}
+		if err := rows.Scan(&practicumProgress.ID, &practicumProgress.UserID, &practicumProgress.PracticumID, &practicumProgress.Progress, &practicumProgress.CompletedAt, &practicumProgress.LastUpdated); err != nil {
+			return nil, err
+		}
+		practicumProgresses = append(practicumProgresses, practicumProgress)
+	}
+	return practicumProgresses, nil
 }

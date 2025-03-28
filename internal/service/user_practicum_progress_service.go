@@ -11,6 +11,7 @@ import (
 type UserPracticumProgressService interface {
 	CreateProgress(progress *model.UserPracticumProgress) error
 	GetProgress(userID, practicumID int) (*model.UserPracticumProgress, error)
+	GetProgressByPracticumIDs(pracIDs []int) ([]model.UserPracticumProgress, error)
 	UpdateProgress(progress *model.UserPracticumProgress) error
 	MarkAsCompleted(userID, practicumID int) error
 	DeleteProgress(id int) error
@@ -75,4 +76,8 @@ func (s *userPracticumProgressService) MarkAsCompleted(userID, practicumID int) 
 
 func (s *userPracticumProgressService) DeleteProgress(id int) error {
 	return s.repo.DeleteProgress(id)
+}
+
+func (s *userPracticumProgressService) GetProgressByPracticumIDs(pracIDs []int) ([]model.UserPracticumProgress, error) {
+	return s.repo.GetProgressByPracticumIDs(pracIDs)
 }

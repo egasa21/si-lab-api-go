@@ -19,9 +19,10 @@ type studentDataService struct {
 	practicumModuleContentService  PracticumModuleContentService
 	studentClassEnrollmentService  StudentClassEnrollmentService
 	practicumClassService          PracticumClassService
+	userPracticumProgressService   UserPracticumProgressService
 }
 
-func NewStudentDataService(userPracticumCheckpointService UserPracticumCheckpointService, practicumService PracticumService, practicumModuleService PracticumModuleService, practicumModuleContentService PracticumModuleContentService, studentClasEstudentClassEnrollmentService StudentClassEnrollmentService, practicumClassService PracticumClassService) StudentDataService {
+func NewStudentDataService(userPracticumCheckpointService UserPracticumCheckpointService, practicumService PracticumService, practicumModuleService PracticumModuleService, practicumModuleContentService PracticumModuleContentService, studentClasEstudentClassEnrollmentService StudentClassEnrollmentService, practicumClassService PracticumClassService, userPracticumProgressService UserPracticumProgressService) StudentDataService {
 	return &studentDataService{
 		userPracticumCheckpointService: userPracticumCheckpointService,
 		practicumService:               practicumService,
@@ -29,6 +30,7 @@ func NewStudentDataService(userPracticumCheckpointService UserPracticumCheckpoin
 		practicumModuleContentService:  practicumModuleContentService,
 		studentClassEnrollmentService:  studentClasEstudentClassEnrollmentService,
 		practicumClassService:          practicumClassService,
+		userPracticumProgressService:   userPracticumProgressService,
 	}
 }
 
@@ -63,6 +65,11 @@ func (s *studentDataService) GetStudentPracticumActivity(userID int) ([]dto.Stud
 		return nil, err
 	}
 
+	practicumProgresses, err := s.userPracticumProgressService.GetProgressByPracticumIDs(practicumIDs)
+	if err != nil {
+		return nil, err
+	}
+
 	modules, err := s.practicumModuleService.GetModuleByIDs(practicumModuleIDs)
 	if err != nil {
 		return nil, err
@@ -76,6 +83,11 @@ func (s *studentDataService) GetStudentPracticumActivity(userID int) ([]dto.Stud
 	practicumMap := make(map[int]model.Practicum)
 	for _, item := range practicums {
 		practicumMap[item.ID] = item
+	}
+
+	practicumProgressMap := make(map[int]model.UserPracticumProgress)
+	for _, item := range practicumProgresses {
+		practicumProgressMap[item.ID] = item
 	}
 
 	moduleMap := make(map[int]model.PracticumModule)
@@ -93,6 +105,7 @@ func (s *studentDataService) GetStudentPracticumActivity(userID int) ([]dto.Stud
 		practicumActivitiesObj := dto.StudentPracticumActivity{
 			ID:                item.ID,
 			PracticumName:     practicumMap[item.PracticumID].Name,
+			PracticumProgress: int(practicumProgressMap[item.PracticumID].Progress),
 			ModuleName:        moduleMap[item.ModuleID].Title,
 			ModuleContentName: contentMap[item.ContentID].Title,
 			ModuleSequence:    contentMap[item.ContentID].Sequence,

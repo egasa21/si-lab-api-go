@@ -57,7 +57,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	studentClassEnrollmentService := service.NewStudentClassEnrollmentService(studentClassEnrollmentRepository)
 	userPracticumProgressService := service.NewUserPracticumProgressService(userPracticumProgressRepository)
 	userPracticumCheckpointService := service.NewUserPracticumCheckpointService(userPracticumCheckpointRepository)
-	studentDataService := service.NewStudentDataService(userPracticumCheckpointService, practicumService, practicumModuleService, practicumModuleContentService, studentClassEnrollmentService, practicumClassService)
+	studentDataService := service.NewStudentDataService(userPracticumCheckpointService, practicumService, practicumModuleService, practicumModuleContentService, studentClassEnrollmentService, practicumClassService, userPracticumProgressService)
 
 	// Initialize handlers
 	studentHandler := handler.NewStudentHandler(studentService, studentDataService)
