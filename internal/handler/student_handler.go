@@ -137,3 +137,22 @@ func (h *StudentHandler) GetStudentPracticumActivities(w http.ResponseWriter, r 
 
 	response.NewSuccessResponse(w, studentActivities, "student activities retrieved successfully")
 }
+
+func (h *StudentHandler) GetStudentSchedules(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("student_id"))
+	if err != nil {
+		appErr := pkg.NewAppError("Invalid ID", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	studentSchedules, err := h.studentDataService.GetStudentSchedules(id)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed ngab")
+		appErr := pkg.NewAppError("Student Activities not found", http.StatusNotFound)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	response.NewSuccessResponse(w, studentSchedules, "student schedules retrieved successfully")
+}

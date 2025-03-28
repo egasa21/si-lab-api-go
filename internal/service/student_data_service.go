@@ -9,6 +9,7 @@ import (
 
 type StudentDataService interface {
 	GetStudentPracticumActivity(userID int) ([]dto.StudentPracticumActivity, error)
+	GetStudentSchedules(studentID int) ([]dto.StudentSchedules, error)
 }
 
 type studentDataService struct {
@@ -16,22 +17,20 @@ type studentDataService struct {
 	practicumService               PracticumService
 	practicumModuleService         PracticumModuleService
 	practicumModuleContentService  PracticumModuleContentService
+	studentClassEnrollmentService  StudentClassEnrollmentService
+	practicumClassService          PracticumClassService
 }
 
-func NewStudentDataService(userPracticumCheckpointService UserPracticumCheckpointService, practicumService PracticumService, practicumModuleService PracticumModuleService, practicumModuleContentService PracticumModuleContentService) StudentDataService {
+func NewStudentDataService(userPracticumCheckpointService UserPracticumCheckpointService, practicumService PracticumService, practicumModuleService PracticumModuleService, practicumModuleContentService PracticumModuleContentService, studentClasEstudentClassEnrollmentService StudentClassEnrollmentService, practicumClassService PracticumClassService) StudentDataService {
 	return &studentDataService{
 		userPracticumCheckpointService: userPracticumCheckpointService,
 		practicumService:               practicumService,
 		practicumModuleService:         practicumModuleService,
 		practicumModuleContentService:  practicumModuleContentService,
+		studentClassEnrollmentService:  studentClasEstudentClassEnrollmentService,
+		practicumClassService:          practicumClassService,
 	}
 }
-
-// type StudentData struct {
-// 	practicumIDs              []int
-// 	practicumModuleIDs        []int
-// 	practicumModuleContentIDs []int
-// }
 
 func (s *studentDataService) GetStudentPracticumActivity(userID int) ([]dto.StudentPracticumActivity, error) {
 	userCheckpoints, err := s.userPracticumCheckpointService.GetCheckpointByUser(userID)
@@ -43,7 +42,7 @@ func (s *studentDataService) GetStudentPracticumActivity(userID int) ([]dto.Stud
 		log.Info().Msg("Checkpoint not found")
 	}
 
-	log.Info().Int("count", len(userCheckpoints)).Msgf("Successfully retrieved %d user practicum checkpoints for user %d", len(userCheckpoints), userID)
+	// log.Info().Int("count", len(userCheckpoints)).Msgf("Successfully retrieved %d user practicum checkpoints for user %d", len(userCheckpoints), userID)
 
 	practicumDataIDs := make(map[int]bool)
 	practicumModuleDataIDs := make(map[int]bool)
@@ -103,5 +102,51 @@ func (s *studentDataService) GetStudentPracticumActivity(userID int) ([]dto.Stud
 	}
 
 	return practicumActivities, nil
+
+}
+
+func (s *studentDataService) GetStudentSchedules(studentID int) ([]dto.StudentSchedules, error) {
+	studentEnrollments, err := s.studentClassEnrollmentService.GetEnrollmentsByStudentID(studentID)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get student enrollments")
+		return nil, err
+	}
+
+	if studentEnrollments == nil {
+		log.Info().Msg("Student enrollments not found")
+	}
+
+	log.Info().Int("count", len(studentEnrollments)).Msgf("Successfully retrieved %d student classes for student %d", len(studentEnrollments), studentID)
+
+	classDataIDs := make(map[int]bool)
+
+	for _, item := range studentEnrollments {
+		classDataIDs[item.ClassID] = true
+	}
+
+	classIDs := pkg.GetKeysFromMap(classDataIDs)
+
+	classes, err := s.practicumClassService.GetClassByIDs(classIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	classMap := make(map[int]model.PracticumClass)
+	for _, item := range classes {
+		classMap[item.IDPracticumClass] = item
+	}
+
+	studentSchedules := make([]dto.StudentSchedules, len(studentEnrollments))
+	for i, item := range studentEnrollments {
+		studentClassObj := dto.StudentSchedules{
+			ID:        item.ID,
+			ClassName: classMap[item.ClassID].Name,
+			ClassTime: classMap[item.ClassID].Time,
+			Day:       classMap[item.ClassID].Day,
+		}
+		studentSchedules[i] = studentClassObj
+	}
+
+	return studentSchedules, nil
 
 }

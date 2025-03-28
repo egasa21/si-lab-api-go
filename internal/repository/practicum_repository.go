@@ -106,7 +106,7 @@ func (r *practicumRepository) GetPracticumByIDs(ids []int) ([]model.Practicum, e
 
 	placeholders := make([]string, len(ids))
 	for i := range ids {
-		placeholders[i] = "$" + strconv.Itoa(i+1) // PostgreSQL uses $1, $2, ...
+		placeholders[i] = "$" + strconv.Itoa(i+1)
 	}
 
 	inClause := strings.Join(placeholders, ",")

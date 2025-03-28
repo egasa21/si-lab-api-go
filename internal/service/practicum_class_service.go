@@ -8,6 +8,7 @@ import (
 type PracticumClassService interface {
 	CreateClass(class *model.PracticumClass) error
 	GetClassByID(id int) (*model.PracticumClass, error)
+	GetClassByIDs(ids []int) ([]model.PracticumClass, error)
 	GetClassesByPracticumID(practicumID int) ([]model.PracticumClass, error)
 	UpdateClass(class *model.PracticumClass) error
 	DeleteClass(id int) error
@@ -39,4 +40,8 @@ func (s *practicumClassService) UpdateClass(class *model.PracticumClass) error {
 
 func (s *practicumClassService) DeleteClass(id int) error {
 	return s.repo.DeleteClass(id)
+}
+
+func (s *practicumClassService) GetClassByIDs(ids []int) ([]model.PracticumClass, error){
+	return s.repo.GetClassByIDs(ids)
 }

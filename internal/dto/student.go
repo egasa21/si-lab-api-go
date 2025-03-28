@@ -9,6 +9,13 @@ type StudentPracticumActivity struct {
 	ModuleContentID   int    `json:"module_content_id"`
 }
 
+type StudentSchedules struct {
+	ID         int    `json:"id"`
+	ClassName  string `json:"class_name"`
+	Day        string `json:"day"`
+	ClassTime  string `json:"class_time"`
+}
+
 type StudentCreateResponse struct {
 	StudentID int `json:"student_id"`
 }

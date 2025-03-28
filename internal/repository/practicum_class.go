@@ -2,6 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/rs/zerolog/log"
@@ -10,6 +13,7 @@ import (
 type PracticumClassRepository interface {
 	CreateClass(class *model.PracticumClass) error
 	GetClassByID(id int) (*model.PracticumClass, error)
+	GetClassByIDs(ids []int) ([]model.PracticumClass, error)
 	GetClassesByPracticumID(practicumID int) ([]model.PracticumClass, error)
 	UpdateClass(class *model.PracticumClass) error
 	DeleteClass(id int) error
@@ -101,4 +105,41 @@ func (r *practicumClassRepository) DeleteClass(id int) error {
 		return err
 	}
 	return nil
+}
+
+func (r *practicumClassRepository) GetClassByIDs(ids []int) ([]model.PracticumClass, error) {
+	if len(ids) == 0 {
+		return []model.PracticumClass{}, nil
+	}
+
+	placeholders := make([]string, len(ids))
+	for i := range ids {
+		placeholders[i] = "$" + strconv.Itoa(i+1)
+	}
+
+	inClause := strings.Join(placeholders, ",")
+	query := fmt.Sprintf("SELECT id_practicum_class, practicum_id, name, quota, day, time, created_at, updated_at FROM practicum_class WHERE id_practicum_class IN (%s)", inClause)
+
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		args[i] = id
+	}
+
+	rows, err := r.db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	practicumClasses := []model.PracticumClass{}
+	for rows.Next() {
+		practicumClass := model.PracticumClass{}
+		if err := rows.Scan(&practicumClass.IDPracticumClass, &practicumClass.PracticumID, &practicumClass.Name, &practicumClass.Quota, &practicumClass.Day, &practicumClass.Time, &practicumClass.CreatedAt, &practicumClass.UpdatedAt); err != nil {
+			return nil, err
+		}
+
+		practicumClasses = append(practicumClasses, practicumClass)
+	}
+
+	return practicumClasses, nil
 }
