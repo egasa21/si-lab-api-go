@@ -9,7 +9,7 @@ import (
 
 type StudentDataService interface {
 	GetStudentPracticumActivity(userID int) ([]dto.StudentPracticumActivity, error)
-	GetStudentSchedules(studentID int) ([]dto.StudentSchedules, error)
+	GetStudentSchedules(userID int) ([]dto.StudentSchedules, error)
 }
 
 type studentDataService struct {
@@ -20,9 +20,10 @@ type studentDataService struct {
 	studentClassEnrollmentService  StudentClassEnrollmentService
 	practicumClassService          PracticumClassService
 	userPracticumProgressService   UserPracticumProgressService
+	studentService                 StudentService
 }
 
-func NewStudentDataService(userPracticumCheckpointService UserPracticumCheckpointService, practicumService PracticumService, practicumModuleService PracticumModuleService, practicumModuleContentService PracticumModuleContentService, studentClasEstudentClassEnrollmentService StudentClassEnrollmentService, practicumClassService PracticumClassService, userPracticumProgressService UserPracticumProgressService) StudentDataService {
+func NewStudentDataService(userPracticumCheckpointService UserPracticumCheckpointService, practicumService PracticumService, practicumModuleService PracticumModuleService, practicumModuleContentService PracticumModuleContentService, studentClasEstudentClassEnrollmentService StudentClassEnrollmentService, practicumClassService PracticumClassService, userPracticumProgressService UserPracticumProgressService, studentService StudentService) StudentDataService {
 	return &studentDataService{
 		userPracticumCheckpointService: userPracticumCheckpointService,
 		practicumService:               practicumService,
@@ -31,6 +32,7 @@ func NewStudentDataService(userPracticumCheckpointService UserPracticumCheckpoin
 		studentClassEnrollmentService:  studentClasEstudentClassEnrollmentService,
 		practicumClassService:          practicumClassService,
 		userPracticumProgressService:   userPracticumProgressService,
+		studentService:                 studentService,
 	}
 }
 
@@ -118,7 +120,13 @@ func (s *studentDataService) GetStudentPracticumActivity(userID int) ([]dto.Stud
 
 }
 
-func (s *studentDataService) GetStudentSchedules(studentID int) ([]dto.StudentSchedules, error) {
+func (s *studentDataService) GetStudentSchedules(userID int) ([]dto.StudentSchedules, error) {
+	student, err := s.studentService.GetStudentByUserID(userID)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get student data")
+		return nil, err
+	}
+	studentID := student.ID
 	studentEnrollments, err := s.studentClassEnrollmentService.GetEnrollmentsByStudentID(studentID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get student enrollments")

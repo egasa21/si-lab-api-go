@@ -57,7 +57,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	studentClassEnrollmentService := service.NewStudentClassEnrollmentService(studentClassEnrollmentRepository)
 	userPracticumProgressService := service.NewUserPracticumProgressService(userPracticumProgressRepository)
 	userPracticumCheckpointService := service.NewUserPracticumCheckpointService(userPracticumCheckpointRepository)
-	studentDataService := service.NewStudentDataService(userPracticumCheckpointService, practicumService, practicumModuleService, practicumModuleContentService, studentClassEnrollmentService, practicumClassService, userPracticumProgressService)
+	studentDataService := service.NewStudentDataService(userPracticumCheckpointService, practicumService, practicumModuleService, practicumModuleContentService, studentClassEnrollmentService, practicumClassService, userPracticumProgressService, studentService)
 
 	// Initialize handlers
 	studentHandler := handler.NewStudentHandler(studentService, studentDataService)
@@ -79,8 +79,8 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	v1Router.Handle("GET /students", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetAllStudents)))
 	v1Router.Handle("GET /students/{id}", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetStudentById)))
 	v1Router.HandleFunc("POST /students", studentHandler.CreateStudent)
-	v1Router.HandleFunc("GET /students/{id}/activities", studentHandler.GetStudentPracticumActivities)
-	v1Router.HandleFunc("GET /students/{student_id}/schedules", studentHandler.GetStudentSchedules)
+	v1Router.Handle("GET /students/activities", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetStudentPracticumActivities)))
+	v1Router.Handle("GET /students/schedules", middlewares.AuthMiddleware(authService)(http.HandlerFunc(studentHandler.GetStudentSchedules)))
 
 	// student registration
 	v1Router.HandleFunc("POST /student-registrations", studentRegistrationHandler.RegisterStudent)

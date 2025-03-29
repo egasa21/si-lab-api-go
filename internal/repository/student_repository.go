@@ -9,6 +9,7 @@ import (
 type StudentRepository interface {
 	GetAllStudents(page, limit int) ([]model.Student, int, error)
 	GetStudentByID(id int) (*model.Student, error)
+	GetStudentByUserID(id int) (*model.Student, error)
 	CreateStudent(student *model.Student) (int, error)
 	GetStudentByStudentID(student_id_number string) (*model.Student, error)
 }
@@ -58,6 +59,26 @@ func (r *studentRepository) GetStudentByID(id int) (*model.Student, error) {
 	var student model.Student
 	err := r.db.QueryRow("SELECT id, student_id_number, name, study_plan_file, created_at, updated_at FROM students WHERE id = $1", id).
 		Scan(&student.ID, &student.StudentIDNumber, &student.Name, &student.StudyPlanFile, &student.CreatedAt, &student.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &student, nil
+}
+
+func (r *studentRepository) GetStudentByUserID(id int) (*model.Student, error) {
+	var student model.Student
+	err := r.db.QueryRow(`
+        SELECT
+            s.id, s.student_id_number, s.name, s.study_plan_file, s.created_at, s.updated_at
+        FROM
+            students s
+        JOIN
+            users u ON s.id = u.id_student
+        WHERE
+            u.id_user = $1
+    `, id).
+		Scan(&student.ID, &student.StudentIDNumber, &student.Name, &student.StudyPlanFile, &student.CreatedAt, &student.UpdatedAt)
+
 	if err != nil {
 		return nil, err
 	}

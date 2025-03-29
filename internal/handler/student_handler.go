@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/egasa21/si-lab-api-go/internal/dto"
+	"github.com/egasa21/si-lab-api-go/internal/middlewares"
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/egasa21/si-lab-api-go/internal/pkg"
 	"github.com/rs/zerolog/log"
@@ -120,14 +121,23 @@ func (h *StudentHandler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *StudentHandler) GetStudentPracticumActivities(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
-	if err != nil {
-		appErr := pkg.NewAppError("Invalid ID", http.StatusBadRequest)
-		response.NewErrorResponse(w, appErr)
+
+	userIDValue := r.Context().Value(middlewares.UserIDKey)
+	if userIDValue == nil {
+		log.Error().Msg("User ID not found in context")
+		response.NewErrorResponse(w, pkg.NewAppError("Unauthorized", http.StatusUnauthorized))
 		return
 	}
 
-	studentActivities, err := h.studentDataService.GetStudentPracticumActivity(id)
+	userIDFloat, ok := userIDValue.(float64)
+	if !ok {
+		log.Error().Msgf("Invalid user ID type in context: %T", userIDValue)
+		response.NewErrorResponse(w, pkg.NewAppError("Unauthorized", http.StatusUnauthorized))
+		return
+	}
+	userID := int(userIDFloat)
+
+	studentActivities, err := h.studentDataService.GetStudentPracticumActivity(userID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed ngab")
 		appErr := pkg.NewAppError("Student Activities not found", http.StatusNotFound)
@@ -139,14 +149,22 @@ func (h *StudentHandler) GetStudentPracticumActivities(w http.ResponseWriter, r 
 }
 
 func (h *StudentHandler) GetStudentSchedules(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("student_id"))
-	if err != nil {
-		appErr := pkg.NewAppError("Invalid ID", http.StatusBadRequest)
-		response.NewErrorResponse(w, appErr)
+	userIDValue := r.Context().Value(middlewares.UserIDKey)
+	if userIDValue == nil {
+		log.Error().Msg("User ID not found in context")
+		response.NewErrorResponse(w, pkg.NewAppError("Unauthorized", http.StatusUnauthorized))
 		return
 	}
 
-	studentSchedules, err := h.studentDataService.GetStudentSchedules(id)
+	userIDFloat, ok := userIDValue.(float64)
+	if !ok {
+		log.Error().Msgf("Invalid user ID type in context: %T", userIDValue)
+		response.NewErrorResponse(w, pkg.NewAppError("Unauthorized", http.StatusUnauthorized))
+		return
+	}
+	userID := int(userIDFloat)
+
+	studentSchedules, err := h.studentDataService.GetStudentSchedules(userID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed ngab")
 		appErr := pkg.NewAppError("Student Activities not found", http.StatusNotFound)

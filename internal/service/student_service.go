@@ -8,6 +8,7 @@ import (
 type StudentService interface {
 	GetAllStudents(page, limit int) ([]model.Student, int, error)
 	GetStudentByID(id int) (*model.Student, error)
+	GetStudentByUserID(id int) (*model.Student, error)
 	CreateStudent(student *model.Student) (int, error)
 	GetStudentByStudentID(student_id_number string) (*model.Student, error)
 }
@@ -30,6 +31,10 @@ func (s *studentService) GetStudentByID(id int) (*model.Student, error) {
 
 func (s *studentService) GetStudentByStudentID(student_id_number string) (*model.Student, error) {
 	return s.repo.GetStudentByStudentID(student_id_number)
+}
+
+func (s *studentService) GetStudentByUserID(id int) (*model.Student, error) {
+	return s.repo.GetStudentByUserID(id)
 }
 
 func (s *studentService) CreateStudent(student *model.Student) (int, error) {
