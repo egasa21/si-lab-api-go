@@ -7,6 +7,7 @@ type StudentPracticumActivity struct {
 	ModuleName        string `json:"module_name"`
 	ModuleContentName string `json:"module_content_name"`
 	ModuleSequence    int    `json:"module_sequence"`
+	ModuleID          int    `json:"module_id"`
 	ModuleContentID   int    `json:"module_content_id"`
 }
 

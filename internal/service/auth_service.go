@@ -78,9 +78,9 @@ func (s *authService) Login(email, password string) (*auth.TokenDetails, error) 
 
 	// Verify password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		fmt.Println("Stored Password:", user.Password)
-		fmt.Println("Input Password:", password)
-		fmt.Printf("Password comparison failed: %v\n", err)
+		// fmt.Println("Stored Password:", user.Password)
+		// fmt.Println("Input Password:", password)
+		// fmt.Printf("Password comparison failed: %v\n", err)
 		return nil, errors.New("invalid email or password")
 	}
 

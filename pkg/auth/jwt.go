@@ -14,12 +14,12 @@ var jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
 type TokenDetails struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int64
 }
 
 var ErrInvalidToken = errors.New("invalid token")
 var ErrTokenExpired = errors.New("token has expired")
 
-// GenerateJWT generates an access token and a refresh token for the user
 func GenerateJWT(userID int, roles []model.RoleModel) (*TokenDetails, error) {
 	// Convert roles to string slice
 	roleNames := make([]string, len(roles))
@@ -27,17 +27,21 @@ func GenerateJWT(userID int, roles []model.RoleModel) (*TokenDetails, error) {
 		roleNames[i] = string(role.Name)
 	}
 
+	// Access token expiration duration
+	accessTokenExpiration := 10 * time.Minute
+	refreshTokenExpiration := 7 * 24 * time.Hour
+
 	// Access token claims
 	accessTokenClaims := jwt.MapClaims{
 		"user_id": userID,
 		"roles":   roleNames,
-		"exp":     time.Now().Add(10 * time.Minute).Unix(),
+		"exp":     time.Now().Add(accessTokenExpiration).Unix(),
 	}
 
 	// Refresh token claims
 	refreshTokenClaims := jwt.MapClaims{
 		"user_id": userID,
-		"exp":     time.Now().Add(7 * 24 * time.Hour).Unix(),
+		"exp":     time.Now().Add(refreshTokenExpiration).Unix(),
 	}
 
 	// Generate access token
@@ -54,10 +58,14 @@ func GenerateJWT(userID int, roles []model.RoleModel) (*TokenDetails, error) {
 		return nil, err
 	}
 
-	// Return tokens
+	// Calculate expiresIn for the access token
+	expiresIn := int64(accessTokenExpiration.Seconds())
+
+	// Return tokens with expiresIn
 	return &TokenDetails{
 		AccessToken:  accessTokenString,
 		RefreshToken: refreshTokenString,
+		ExpiresIn:    expiresIn,
 	}, nil
 }
 

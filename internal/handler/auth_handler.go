@@ -73,9 +73,10 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := map[string]string{
+	data := map[string]interface{}{
 		"access_token":  token.AccessToken,
 		"refresh_token": token.RefreshToken,
+		"expiresIn":     token.ExpiresIn,
 	}
 
 	response.NewSuccessResponse(w, data, "User registered successfully ")

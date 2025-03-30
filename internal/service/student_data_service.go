@@ -111,6 +111,7 @@ func (s *studentDataService) GetStudentPracticumActivity(userID int) ([]dto.Stud
 			ModuleName:        moduleMap[item.ModuleID].Title,
 			ModuleContentName: contentMap[item.ContentID].Title,
 			ModuleSequence:    contentMap[item.ContentID].Sequence,
+			ModuleID:          moduleMap[item.ModuleID].ID,
 			ModuleContentID:   contentMap[item.ContentID].IDContent,
 		}
 		practicumActivities[i] = practicumActivitiesObj
