@@ -13,6 +13,7 @@ import (
 type AuthService interface {
 	Register(user *model.User, roles []string) error
 	Login(email, password string) (*auth.TokenDetails, error)
+	GetUserByID(id int) (*model.User, error)
 }
 
 type authService struct {
@@ -92,6 +93,9 @@ func (s *authService) Login(email, password string) (*auth.TokenDetails, error) 
 	return tokens, nil
 }
 
+func (s *authService) GetUserByID(id int) (*model.User, error) {
+	return s.repo.GetUserByID(id)
+}
 
 func (s *authService) getRoleIDByName(name string) (int, error) {
 	roleMapping := map[string]int{

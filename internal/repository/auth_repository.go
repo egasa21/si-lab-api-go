@@ -10,6 +10,7 @@ import (
 type AuthRepository interface {
 	Register(user *model.User) error
 	GetUserByEmail(email string) (*model.User, error)
+	GetUserByID(id int) (*model.User, error)
 	AddRoleToUser(idUser int, idRole int) error
 	GetRolesByUserID(idUser int) ([]model.RoleModel, error)
 }
@@ -42,6 +43,30 @@ func (r *authRepository) GetUserByEmail(email string) (*model.User, error) {
 		SELECT id_user, email, password, id_student, created_at
 		FROM users WHERE email = $1`
 	err := r.db.QueryRow(query, email).Scan(
+		&user.IDUser,
+		&user.Email,
+		&user.Password,
+		&user.IDStudent,
+		&user.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	roles, err := r.GetRolesByUserID(user.IDUser)
+	if err != nil {
+		return nil, err
+	}
+	user.Roles = roles
+
+	return &user, nil
+}
+
+func (r *authRepository) GetUserByID(id int) (*model.User, error) {
+	var user model.User
+	query := `
+		SELECT id_user, email, password, id_student, created_at
+		FROM users WHERE id_user = $1`
+	err := r.db.QueryRow(query, id).Scan(
 		&user.IDUser,
 		&user.Email,
 		&user.Password,

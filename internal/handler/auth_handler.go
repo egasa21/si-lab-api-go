@@ -6,10 +6,12 @@ import (
 	"net/http"
 
 	"github.com/egasa21/si-lab-api-go/internal/dto"
+	"github.com/egasa21/si-lab-api-go/internal/middlewares"
 	"github.com/egasa21/si-lab-api-go/internal/model"
 	"github.com/egasa21/si-lab-api-go/internal/pkg"
 	"github.com/egasa21/si-lab-api-go/internal/pkg/response"
 	"github.com/egasa21/si-lab-api-go/internal/service"
+	"github.com/rs/zerolog/log"
 )
 
 type AuthHandler struct {
@@ -78,4 +80,31 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	response.NewSuccessResponse(w, data, "User registered successfully ")
 
+}
+
+func (h *AuthHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
+	userIDValue := r.Context().Value(middlewares.UserIDKey)
+	if userIDValue == nil {
+		log.Error().Msg("User ID not found in context")
+		response.NewErrorResponse(w, pkg.NewAppError("Unauthorized", http.StatusUnauthorized))
+		return
+	}
+
+	userIDFloat, ok := userIDValue.(float64)
+	if !ok {
+		log.Error().Msgf("Invalid user ID type in context: %T", userIDValue)
+		response.NewErrorResponse(w, pkg.NewAppError("Unauthorized", http.StatusUnauthorized))
+		return
+	}
+	userID := int(userIDFloat)
+
+	userData, err := h.authService.GetUserByID(userID)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed ngab")
+		appErr := pkg.NewAppError("user not found", http.StatusNotFound)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	response.NewSuccessResponse(w, userData, "user data retrieved successfully")
 }
