@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -40,7 +39,7 @@ func (h *PracticumModuleContentHandler) CreateContent(w http.ResponseWriter, r *
 
 	err = h.service.CreateContent(&content)
 	if err != nil {
-		fmt.Println(err)
+		log.Error().Err(err).Msg("Failed to create practicum module content")
 		appErr := pkg.NewAppError("Failed to create content", http.StatusInternalServerError)
 		response.NewErrorResponse(w, appErr)
 		return

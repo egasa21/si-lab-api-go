@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/egasa21/si-lab-api-go/internal/model"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
 
@@ -42,24 +43,27 @@ func (r *practicumModuleContentRepository) CreateContent(content *model.Practicu
 		}
 	}()
 
-	query := `
-		INSERT INTO practicum_module_content (id_module, title, content, sequence)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id_content
-	`
-	_, err = tx.Exec(query, content.IDModule, content.Title, content.Content, content.Sequence)
-	if err != nil {
-		return err
+	if content.MaterialID == uuid.Nil {
+		content.MaterialID = uuid.New()
 	}
 
-	return nil
+	query := `
+		INSERT INTO practicum_module_content (id_module, title, content, sequence, material_id)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id_content
+	`
+	err = tx.QueryRow(query, content.IDModule, content.Title, content.Content, content.Sequence, content.MaterialID).
+		Scan(&content.IDContent)
+
+	return err
 }
 
 func (r *practicumModuleContentRepository) GetContentByID(id int) (*model.PracticumModuleContent, error) {
 	var content model.PracticumModuleContent
 	err := r.db.QueryRow(
-		"SELECT id_content, id_module, title, content, sequence, created_at, updated_at FROM practicum_module_content WHERE id_content = $1", id,
-	).Scan(&content.IDContent, &content.IDModule, &content.Title, &content.Content, &content.Sequence, &content.CreatedAt, &content.UpdatedAt)
+		`SELECT id_content, id_module, title, content, sequence, created_at, updated_at, material_id
+		 FROM practicum_module_content WHERE id_content = $1`, id,
+	).Scan(&content.IDContent, &content.IDModule, &content.Title, &content.Content, &content.Sequence, &content.CreatedAt, &content.UpdatedAt, &content.MaterialID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +74,8 @@ func (r *practicumModuleContentRepository) GetContentsByModuleID(moduleID, page,
 	offset := (page - 1) * limit
 
 	rows, err := r.db.Query(
-		"SELECT id_content, id_module, title, content, sequence, created_at, updated_at FROM practicum_module_content WHERE id_module = $1 ORDER BY sequence LIMIT $2 OFFSET $3",
+		`SELECT id_content, id_module, title, content, sequence, created_at, updated_at, material_id
+		 FROM practicum_module_content WHERE id_module = $1 ORDER BY sequence LIMIT $2 OFFSET $3`,
 		moduleID, limit, offset,
 	)
 	if err != nil {
@@ -82,7 +87,7 @@ func (r *practicumModuleContentRepository) GetContentsByModuleID(moduleID, page,
 	var contents []model.PracticumModuleContent
 	for rows.Next() {
 		var content model.PracticumModuleContent
-		if err := rows.Scan(&content.IDContent, &content.IDModule, &content.Title, &content.Content, &content.Sequence, &content.CreatedAt, &content.UpdatedAt); err != nil {
+		if err := rows.Scan(&content.IDContent, &content.IDModule, &content.Title, &content.Content, &content.Sequence, &content.CreatedAt, &content.UpdatedAt, &content.MaterialID); err != nil {
 			return nil, 0, err
 		}
 		contents = append(contents, content)
@@ -104,17 +109,17 @@ func (r *practicumModuleContentRepository) GetContentByIDs(ids []int) ([]model.P
 	}
 
 	placeholders := make([]string, len(ids))
-	for i := range ids {
-		placeholders[i] = "$" + strconv.Itoa(i+1)
-	}
-
-	inClause := strings.Join(placeholders, ",")
-	query := fmt.Sprintf("SELECT id_content, id_module, title, content, sequence, created_at, updated_at FROM practicum_module_content WHERE id_content IN (%s)", inClause)
-
 	args := make([]interface{}, len(ids))
 	for i, id := range ids {
+		placeholders[i] = "$" + strconv.Itoa(i+1)
 		args[i] = id
 	}
+
+	query := fmt.Sprintf(
+		`SELECT id_content, id_module, title, content, sequence, created_at, updated_at, material_id
+		 FROM practicum_module_content WHERE id_content IN (%s)`,
+		strings.Join(placeholders, ","),
+	)
 
 	rows, err := r.db.Query(query, args...)
 	if err != nil {
@@ -122,13 +127,13 @@ func (r *practicumModuleContentRepository) GetContentByIDs(ids []int) ([]model.P
 	}
 	defer rows.Close()
 
-	practicumModuleContents := []model.PracticumModuleContent{}
+	var contents []model.PracticumModuleContent
 	for rows.Next() {
-		practicumModuleContent := model.PracticumModuleContent{}
-		if err := rows.Scan(&practicumModuleContent.IDContent, &practicumModuleContent.IDModule, &practicumModuleContent.Title, &practicumModuleContent.Content, &practicumModuleContent.Sequence, &practicumModuleContent.CreatedAt, &practicumModuleContent.UpdatedAt); err != nil {
+		var content model.PracticumModuleContent
+		if err := rows.Scan(&content.IDContent, &content.IDModule, &content.Title, &content.Content, &content.Sequence, &content.CreatedAt, &content.UpdatedAt, &content.MaterialID); err != nil {
 			return nil, err
 		}
-		practicumModuleContents = append(practicumModuleContents, practicumModuleContent)
+		contents = append(contents, content)
 	}
-	return practicumModuleContents, nil
+	return contents, nil
 }
