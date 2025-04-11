@@ -15,6 +15,7 @@ type PracticumRepository interface {
 	GetPracticumByID(id int) (*model.Practicum, error)
 	GetPracticumByIDs(ids []int) ([]model.Practicum, error)
 	GetAllPracticums(page, limit int) ([]model.Practicum, int, error)
+	GetPracticumWithMaterialContents(id int) (*model.PracticumWithMaterial, error)
 }
 
 type practicumRepository struct {
@@ -133,4 +134,77 @@ func (r *practicumRepository) GetPracticumByIDs(ids []int) ([]model.Practicum, e
 	}
 
 	return practicums, nil
+}
+
+func (r *practicumRepository) GetPracticumWithMaterialContents(id int) (*model.PracticumWithMaterial, error) {
+	query := `
+		SELECT 
+			p.id_practicum, p.name, p.code, p.description, p.credits, p.semester,
+			pm.id, pm.title,
+			pmc.id_content, pmc.title
+		FROM practicums p
+		LEFT JOIN practicum_modules pm ON pm.practicum_id = p.id_practicum
+		LEFT JOIN practicum_module_content pmc ON pmc.id_module = pm.id
+		WHERE p.id_practicum = $1
+		ORDER BY pm.id, pmc.sequence
+	`
+
+	rows, err := r.db.Query(query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var practicum *model.PracticumWithMaterial
+	moduleMap := map[uint]*model.ModuleWithMaterials{}
+
+	for rows.Next() {
+		var (
+			practicumID                                  uint
+			practicumName, code, desc, credits, semester string
+			moduleID, contentID                          sql.NullInt64
+			moduleTitle, contentTitle                    sql.NullString
+		)
+
+		if err := rows.Scan(
+			&practicumID, &practicumName, &code, &desc, &credits, &semester,
+			&moduleID, &moduleTitle,
+			&contentID, &contentTitle,
+		); err != nil {
+			return nil, err
+		}
+
+		if practicum == nil {
+			practicum = &model.PracticumWithMaterial{
+				ID:          practicumID,
+				Name:        practicumName,
+				Code:        code,
+				Description: desc,
+				Credits:     credits,
+				Semester:    semester,
+				Modules:     []*model.ModuleWithMaterials{},
+			}
+		}
+
+		if moduleID.Valid {
+			modID := uint(moduleID.Int64)
+			if _, exists := moduleMap[modID]; !exists {
+				moduleMap[modID] = &model.ModuleWithMaterials{
+					ID:        modID,
+					Title:     moduleTitle.String,
+					Materials: []model.Material{},
+				}
+				practicum.Modules = append(practicum.Modules, moduleMap[modID])
+			}
+
+			if contentID.Valid {
+				moduleMap[modID].Materials = append(moduleMap[modID].Materials, model.Material{
+					ID:    uint(contentID.Int64),
+					Title: contentTitle.String,
+				})
+			}
+		}
+	}
+
+	return practicum, nil
 }

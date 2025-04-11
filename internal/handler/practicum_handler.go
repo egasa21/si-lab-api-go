@@ -94,3 +94,21 @@ func (h *PracticumHandler) GetAllPracticums(w http.ResponseWriter, r *http.Reque
 
 	response.NewPaginatedSuccessResponse(w, practicums, pagination, "Students retrieved successfully")
 }
+
+func (h *PracticumHandler) GetPracticumWithMaterialContents(w http.ResponseWriter, r *http.Request) {
+	practicumID, err := strconv.Atoi(r.PathValue("practicum_id"))
+	if err != nil {
+		appErr := pkg.NewAppError("Invalid practicum ID", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	practicumWithMaterials, err := h.service.GetPracticumWithMaterialContents(practicumID)
+	if err != nil {
+		appErr := pkg.NewAppError("practicum not found", http.StatusNotFound)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	response.NewSuccessResponse(w, practicumWithMaterials, "Practicum with materials retrieved successfully")
+}

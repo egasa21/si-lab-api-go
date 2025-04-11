@@ -10,6 +10,7 @@ type PracticumService interface {
 	GetPracticumByID(id int) (*model.Practicum, error)
 	GetPracticumByIDs(ids []int) ([]model.Practicum, error)
 	GetAllPracticums(page, limit int) ([]model.Practicum, int, error)
+	GetPracticumWithMaterialContents(id int) (*model.PracticumWithMaterial, error)
 }
 
 type practicumService struct {
@@ -34,4 +35,8 @@ func (s *practicumService) GetAllPracticums(page, limit int) ([]model.Practicum,
 
 func (s *practicumService) GetPracticumByIDs(ids []int) ([]model.Practicum, error) {
 	return s.repo.GetPracticumByIDs(ids)
+}
+
+func (s *practicumService) GetPracticumWithMaterialContents(id int) (*model.PracticumWithMaterial, error) {
+	return s.repo.GetPracticumWithMaterialContents(id)
 }
