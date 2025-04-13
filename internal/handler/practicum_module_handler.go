@@ -35,14 +35,19 @@ func (h *PracticumModuleHandler) CreateModule(w http.ResponseWriter, r *http.Req
 		PracticumID: req.PracticumID,
 	}
 
-	err = h.service.CreateModule(&module)
+	newModule, err := h.service.CreateModule(&module)
 	if err != nil {
 		appErr := pkg.NewAppError("Failed to create module", http.StatusInternalServerError)
 		response.NewErrorResponse(w, appErr)
 		return
 	}
 
-	response.NewSuccessResponse(w, nil, "Module created successfully")
+	moduleResponse := &dto.PracticumModuleResponse{
+		ID:    uint(newModule.ID),
+		Title: newModule.Title,
+	}
+
+	response.NewSuccessResponse(w, moduleResponse, "Module created successfully")
 }
 
 func (h *PracticumModuleHandler) GetModuleByID(w http.ResponseWriter, r *http.Request) {

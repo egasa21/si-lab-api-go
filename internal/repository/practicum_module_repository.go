@@ -11,7 +11,7 @@ import (
 )
 
 type PracticumModuleRepository interface {
-	CreateModule(module *model.PracticumModule) error
+	CreateModule(module *model.PracticumModule) (*model.PracticumModule, error)
 	GetModuleByID(id int) (*model.PracticumModule, error)
 	GetModuleByIDs(ids []int) ([]model.PracticumModule, error)
 	GetModulesByPracticumID(practicumID, page, limit int) ([]model.PracticumModule, int, error)
@@ -25,10 +25,10 @@ func NewPracticumModuleRepository(db *sql.DB) PracticumModuleRepository {
 	return &practicumModuleRepository{db: db}
 }
 
-func (r *practicumModuleRepository) CreateModule(module *model.PracticumModule) error {
+func (r *practicumModuleRepository) CreateModule(module *model.PracticumModule) (*model.PracticumModule, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer func() {
@@ -43,16 +43,16 @@ func (r *practicumModuleRepository) CreateModule(module *model.PracticumModule) 
 	}()
 
 	query := `
-		INSERT INTO practicum_modules (title, practicum_id)
-		VALUES ($1, $2)
-		RETURNING id
-	`
-	_, err = tx.Exec(query, module.Title, module.PracticumID)
+        INSERT INTO practicum_modules (title, practicum_id)
+        VALUES ($1, $2)
+        RETURNING id
+    `
+	err = tx.QueryRow(query, module.Title, module.PracticumID).Scan(&module.ID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return module, nil
 }
 
 func (r *practicumModuleRepository) GetModuleByID(id int) (*model.PracticumModule, error) {

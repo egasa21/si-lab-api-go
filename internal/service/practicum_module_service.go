@@ -6,7 +6,7 @@ import (
 )
 
 type PracticumModuleService interface {
-	CreateModule(module *model.PracticumModule) error
+	CreateModule(module *model.PracticumModule) (*model.PracticumModule, error)
 	GetModuleByID(id int) (*model.PracticumModule, error)
 	GetModuleByIDs(ids []int) ([]model.PracticumModule, error)
 	GetModulesByPracticumID(practicumID, page, limit int) ([]model.PracticumModule, int, error)
@@ -20,7 +20,7 @@ func NewPracticumModuleService(repo repository.PracticumModuleRepository) Practi
 	return &practicumModuleService{repo: repo}
 }
 
-func (s *practicumModuleService) CreateModule(module *model.PracticumModule) error {
+func (s *practicumModuleService) CreateModule(module *model.PracticumModule) (*model.PracticumModule, error) {
 	return s.repo.CreateModule(module)
 }
 
