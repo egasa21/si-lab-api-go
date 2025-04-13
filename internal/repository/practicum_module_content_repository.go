@@ -16,6 +16,7 @@ type PracticumModuleContentRepository interface {
 	GetContentByID(id int) (*model.PracticumModuleContent, error)
 	GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error)
 	GetContentsByModuleID(moduleID, page, limit int) ([]model.PracticumModuleContent, int, error)
+	UpdateContentByID(id int, updatedContent *model.PracticumModuleContent) error
 }
 
 type practicumModuleContentRepository struct {
@@ -136,4 +137,24 @@ func (r *practicumModuleContentRepository) GetContentByIDs(ids []int) ([]model.P
 		contents = append(contents, content)
 	}
 	return contents, nil
+}
+
+func (r *practicumModuleContentRepository) UpdateContentByID(id int, updatedContent *model.PracticumModuleContent) error {
+	query := `
+		UPDATE practicum_module_content
+		SET title = $1,
+			content = $2,
+			sequence = $3,
+			material_id = $4,
+			updated_at = NOW()
+		WHERE id_content = $5
+	`
+
+	_, err := r.db.Exec(query, updatedContent.Title, updatedContent.Content, updatedContent.Sequence, updatedContent.MaterialID, id)
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to update practicum module content with ID %d", id)
+		return err
+	}
+
+	return nil
 }

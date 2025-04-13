@@ -10,6 +10,7 @@ type PracticumModuleContentService interface {
 	GetContentByID(id int) (*model.PracticumModuleContent, error)
 	GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error)
 	GetContentsByModuleID(moduleID, page, limit int) ([]model.PracticumModuleContent, int, error)
+	UpdateContentByID(id int, updatedContent *model.PracticumModuleContent) error
 }
 
 type practicumModuleContentService struct {
@@ -34,4 +35,8 @@ func (s *practicumModuleContentService) GetContentsByModuleID(moduleID, page, li
 
 func (s *practicumModuleContentService) GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error) {
 	return s.repo.GetContentByIDs(ids)
+}
+
+func (s *practicumModuleContentService) UpdateContentByID(id int, updatedContent *model.PracticumModuleContent) error {
+	return s.repo.UpdateContentByID(id, updatedContent)
 }

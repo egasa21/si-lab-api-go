@@ -105,3 +105,38 @@ func (h *PracticumModuleContentHandler) GetContentsByModuleID(w http.ResponseWri
 
 	response.NewPaginatedSuccessResponse(w, contents, pagination, "Contents retrieved successfully")
 }
+
+func (h *PracticumModuleContentHandler) UpdateContentByID(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		appErr := pkg.NewAppError("Invalid ID", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	var req dto.UpdatePracticumModuleContentRequest
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		appErr := pkg.NewAppError("Invalid request payload", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	updatedContent := model.PracticumModuleContent{
+		IDModule:   req.IDModule,
+		Title:      req.Title,
+		Content:    req.Content,
+		Sequence:   req.Sequence,
+		MaterialID: req.MaterialID,
+	}
+
+	err = h.service.UpdateContentByID(id, &updatedContent)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to update practicum module content")
+		appErr := pkg.NewAppError("Failed to update content", http.StatusInternalServerError)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	response.NewSuccessResponse(w, nil, "Content updated successfully")
+}

@@ -108,6 +108,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	// practicum module content
 	v1Router.HandleFunc("POST /practicum-module-contents", practicumModuleContentHandler.CreateContent)
 	v1Router.HandleFunc("GET /practicum-module-contents/{id}", practicumModuleContentHandler.GetContentByID)
+	v1Router.HandleFunc("PUT /practicum-module-contents/{id}", practicumModuleContentHandler.UpdateContentByID)
 	v1Router.HandleFunc("GET /practicum-modules/{module_id}/contents", practicumModuleContentHandler.GetContentsByModuleID)
 
 	// practicum class
