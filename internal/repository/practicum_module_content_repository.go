@@ -12,7 +12,7 @@ import (
 )
 
 type PracticumModuleContentRepository interface {
-	CreateContent(content *model.PracticumModuleContent) error
+	CreateContent(content *model.PracticumModuleContent) (*model.PracticumModuleContent, error)
 	GetContentByID(id int) (*model.PracticumModuleContent, error)
 	GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error)
 	GetContentsByModuleID(moduleID, page, limit int) ([]model.PracticumModuleContent, int, error)
@@ -27,10 +27,10 @@ func NewPracticumModuleContentRepository(db *sql.DB) PracticumModuleContentRepos
 	return &practicumModuleContentRepository{db: db}
 }
 
-func (r *practicumModuleContentRepository) CreateContent(content *model.PracticumModuleContent) error {
+func (r *practicumModuleContentRepository) CreateContent(content *model.PracticumModuleContent) (*model.PracticumModuleContent, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer func() {
@@ -56,7 +56,7 @@ func (r *practicumModuleContentRepository) CreateContent(content *model.Practicu
 	err = tx.QueryRow(query, content.IDModule, content.Title, content.Content, content.Sequence, content.MaterialID).
 		Scan(&content.IDContent)
 
-	return err
+	return content, err
 }
 
 func (r *practicumModuleContentRepository) GetContentByID(id int) (*model.PracticumModuleContent, error) {

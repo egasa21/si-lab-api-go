@@ -20,3 +20,9 @@ type UpdatePracticumModuleContentRequest struct {
 	Sequence   int       `json:"sequence"`
 	MaterialID uuid.UUID `json:"material_id"`
 }
+
+
+type PracticumModuleContentResponse struct {
+	ID    uint   `json:"id"`
+	Title string `json:"title"`
+}

@@ -37,7 +37,7 @@ func (h *PracticumModuleContentHandler) CreateContent(w http.ResponseWriter, r *
 		Sequence: req.Sequence,
 	}
 
-	err = h.service.CreateContent(&content)
+	newModuleContent, err := h.service.CreateContent(&content)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create practicum module content")
 		appErr := pkg.NewAppError("Failed to create content", http.StatusInternalServerError)
@@ -45,7 +45,12 @@ func (h *PracticumModuleContentHandler) CreateContent(w http.ResponseWriter, r *
 		return
 	}
 
-	response.NewSuccessResponse(w, nil, "Content created successfully")
+	moduleContentResponse := &dto.PracticumModuleContentResponse{
+		ID:    uint(newModuleContent.IDContent),
+		Title: newModuleContent.Title,
+	}
+
+	response.NewSuccessResponse(w, moduleContentResponse, "Content created successfully")
 }
 
 func (h *PracticumModuleContentHandler) GetContentByID(w http.ResponseWriter, r *http.Request) {
