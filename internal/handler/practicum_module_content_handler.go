@@ -119,6 +119,13 @@ func (h *PracticumModuleContentHandler) UpdateContentByID(w http.ResponseWriter,
 		return
 	}
 
+	content, err := h.service.GetContentByID(id)
+	if err != nil {
+		appErr := pkg.NewAppError("content not found", http.StatusNotFound)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
 	var req dto.UpdatePracticumModuleContentRequest
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -128,11 +135,12 @@ func (h *PracticumModuleContentHandler) UpdateContentByID(w http.ResponseWriter,
 	}
 
 	updatedContent := model.PracticumModuleContent{
-		IDModule:   req.IDModule,
-		Title:      req.Title,
-		Content:    req.Content,
-		Sequence:   req.Sequence,
-		MaterialID: req.MaterialID,
+		IDModule: req.IDModule,
+		Title:    req.Title,
+		Content:  req.Content,
+		// update this if want the frontend able to update the sequence
+		Sequence:   content.Sequence,
+		MaterialID: content.MaterialID,
 	}
 
 	err = h.service.UpdateContentByID(id, &updatedContent)
