@@ -17,6 +17,7 @@ type PracticumModuleContentRepository interface {
 	GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error)
 	GetContentsByModuleID(moduleID, page, limit int) ([]model.PracticumModuleContent, int, error)
 	UpdateContentByID(id int, updatedContent *model.PracticumModuleContent) error
+	DeleteContentByID(id int) error
 }
 
 type practicumModuleContentRepository struct {
@@ -156,5 +157,15 @@ func (r *practicumModuleContentRepository) UpdateContentByID(id int, updatedCont
 		return err
 	}
 
+	return nil
+}
+
+func (r *practicumModuleContentRepository) DeleteContentByID(id int) error {
+	query := `DELETE FROM practicum_module_content WHERE id_content = $1`
+	_, err := r.db.Exec(query, id)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to delete practicum module content")
+		return err
+	}
 	return nil
 }

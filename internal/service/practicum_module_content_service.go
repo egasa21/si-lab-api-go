@@ -11,6 +11,7 @@ type PracticumModuleContentService interface {
 	GetContentByIDs(ids []int) ([]model.PracticumModuleContent, error)
 	GetContentsByModuleID(moduleID, page, limit int) ([]model.PracticumModuleContent, int, error)
 	UpdateContentByID(id int, updatedContent *model.PracticumModuleContent) error
+	DeleteContentByID(id int) error
 }
 
 type practicumModuleContentService struct {
@@ -39,4 +40,8 @@ func (s *practicumModuleContentService) GetContentByIDs(ids []int) ([]model.Prac
 
 func (s *practicumModuleContentService) UpdateContentByID(id int, updatedContent *model.PracticumModuleContent) error {
 	return s.repo.UpdateContentByID(id, updatedContent)
+}
+
+func (s *practicumModuleContentService) DeleteContentByID(id int) error {
+	return s.repo.DeleteContentByID(id)
 }

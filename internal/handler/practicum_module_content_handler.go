@@ -153,3 +153,22 @@ func (h *PracticumModuleContentHandler) UpdateContentByID(w http.ResponseWriter,
 
 	response.NewSuccessResponse(w, nil, "Content updated successfully")
 }
+
+func (h *PracticumModuleContentHandler) DeleteContentByID(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		appErr := pkg.NewAppError("Invalid ID", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	err = h.service.DeleteContentByID(id)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to delete practicum module content")
+		appErr := pkg.NewAppError("delete to delete content", http.StatusInternalServerError)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	response.NewSuccessResponse(w, nil, "Content deleted successfully")
+}
