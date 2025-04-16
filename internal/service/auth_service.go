@@ -14,6 +14,7 @@ type AuthService interface {
 	Register(user *model.User, roles []string) error
 	Login(email, password string) (*auth.TokenDetails, error)
 	GetUserByID(id int) (*model.User, error)
+	RefreshToken(oldToken string) (*auth.TokenDetails, error)
 }
 
 type authService struct {
@@ -109,4 +110,35 @@ func (s *authService) getRoleIDByName(name string) (int, error) {
 		return 0, errors.New("invalid role")
 	}
 	return id, nil
+}
+
+func (s *authService) RefreshToken(oldToken string) (*auth.TokenDetails, error) {
+	claims, err := auth.VerifyToken(oldToken)
+	if err != nil {
+		return nil, err
+	}
+
+	userIDFloat, ok := claims["user_id"].(float64)
+	if !ok {
+		return nil, errors.New("invalid token payload")
+	}
+	userID := int(userIDFloat)
+
+	// Token reuse detection logic could go here if storing refresh tokens in DB
+
+	// Get user roles
+	user, err := s.repo.GetUserByID(userID)
+	if err != nil {
+		return nil, errors.New("user not found")
+	}
+
+	// Generate new access + refresh tokens
+	newTokens, err := auth.GenerateJWT(user.IDUser, user.Roles)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate new tokens: %w", err)
+	}
+
+	// TODO: mark old refresh token as used/revoked if stored
+
+	return newTokens, nil
 }

@@ -79,7 +79,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		"expiresIn":     token.ExpiresIn,
 	}
 
-	response.NewSuccessResponse(w, data, "User registered successfully ")
+	response.NewSuccessResponse(w, data, "login successfully ")
 
 }
 
@@ -108,4 +108,29 @@ func (h *AuthHandler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.NewSuccessResponse(w, userData, "user data retrieved successfully")
+}
+
+func (h *AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.RefreshToken == "" {
+		appErr := pkg.NewAppError("Invalid refresh token payload", http.StatusBadRequest)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	newTokens, err := h.authService.RefreshToken(req.RefreshToken)
+	if err != nil {
+		appErr := pkg.NewAppError("Failed to refresh token", http.StatusUnauthorized)
+		response.NewErrorResponse(w, appErr)
+		return
+	}
+
+	response.NewSuccessResponse(w, map[string]interface{}{
+		"access_token":  newTokens.AccessToken,
+		"refresh_token": newTokens.RefreshToken,
+		"expiresIn":     newTokens.ExpiresIn,
+	}, "Token refreshed successfully")
 }

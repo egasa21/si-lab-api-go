@@ -136,6 +136,7 @@ func NewServer(cfg *configs.Config, logger zerolog.Logger) *Server {
 	// auth
 	v1Router.HandleFunc("POST /auth/register", authHandler.Register)
 	v1Router.HandleFunc("POST /auth/login", authHandler.Login)
+	v1Router.Handle("POST /auth/refresh-token", middlewares.AuthMiddleware(authService)(http.HandlerFunc(authHandler.RefreshToken)))
 	v1Router.Handle("GET /auth/me", middlewares.AuthMiddleware(authService)(http.HandlerFunc(authHandler.GetCurrentUser)))
 
 	v1Router.HandleFunc("/health", healthCheckHandler)
